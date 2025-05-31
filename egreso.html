@@ -20,7 +20,7 @@
 <body class="bg-light">
 
   <div class="container py-5">
-    <h2 class="text-center mb-5">Ingreso de Productos</h2>
+    <h2 class="text-center mb-5">Salida de Productos</h2>
     <form id="formularioProducto" onsubmit="event.preventDefault(); finalizarFormulario();">
 
         <!-- Paso 1: Selección de Producto -->
@@ -46,39 +46,20 @@
       </div>
       <!-- Paso 2: Información del producto -->
       <div class="card shadow-sm mb-4">
-        <div class="card-header bg-success text-white">Paso 2: Ingreso del Producto</div>
+        <div class="card-header bg-success text-white">Paso 2: Salida de Producto</div>
         <div class="card-body">
-          <div class="mb-3">
-            <label for="productname" class="form-label">Número de Lote</label>
-            <input type="text" class="form-control" id="productname" placeholder="Ej. Lote12345">
-            <div class="invalid-feedback">Este campo es obligatorio.</div>
-          </div>
           <div class="mb-3">
             <label for="presentacionproducto" class="form-label">Cantidad</label>
             <input type="text" class="form-control" id="presentacionproducto" placeholder="Ej. 100">
             <div class="invalid-feedback">Este campo es obligatorio.</div>
           </div>
-        </div>
-      </div>
-
-      <!-- Paso 3: Fechas -->
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-info text-white">Paso 3: Fechas del producto</div>
-        <div class="card-body">
           <div class="mb-3">
-            <label for="fechaElaboracion" class="form-label">Fecha de elaboración</label>
-            <input type="date" class="form-control" id="fechaElaboracion">
-            <div class="invalid-feedback">Debes seleccionar una fecha válida.</div>
-          </div>
-          <div class="mb-3">
-            <label for="fechaCaducidad" class="form-label">Fecha de caducidad</label>
-            <input type="date" class="form-control" id="fechaCaducidad">
-            <div class="invalid-feedback">Debes seleccionar una fecha válida.</div>
+            <label for="presentacionproducto" class="form-label">Comentarios</label>
+            <input type="text" class="form-control" id="presentacionproducto">
+            <div class="invalid-feedback">Este campo es obligatorio.</div>
           </div>
         </div>
       </div>
-
-      
 
       <div class="d-flex justify-content-end">
         <button type="submit" class="btn btn-success">Finalizar</button>
