@@ -1,5 +1,22 @@
 /* style.css */
-
+/* Submenú visual */
+      .dropdown-submenu {
+        position: relative;
+      }
+      .dropdown-submenu > .dropdown-menu {
+        top: 0;
+        left: 100%;
+        margin-left: 0.1rem;
+        margin-right: 0.1rem;
+      }
+      /* Mejorar visibilidad en móviles */
+      @media (max-width: 991.98px) {
+        .dropdown-submenu > .dropdown-menu {
+          left: 0;
+          top: 100%;
+        }
+      }
+      
 body {
   background: linear-gradient(to bottom right, #e0f7ff, #f0f9ff);
   font-family: 'Segoe UI', sans-serif;
@@ -85,3 +102,28 @@ body {
   background-attachment: fixed;
   color: #333;
 }
+
+.scrollable-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+
+.dropdown-submenu {
+    position: relative;
+  }
+  .dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-left: 0.1rem;
+    margin-right: 0.1rem;
+  }
+  @media (max-width: 991.98px) {
+    .dropdown-submenu > .dropdown-menu {
+      left: 0;
+      top: 100%;
+    }
+  }
