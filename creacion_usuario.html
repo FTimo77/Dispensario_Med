@@ -15,7 +15,7 @@
     <div
       class="container d-flex justify-content-center align-items-center min-vh-100"
     >
-      <div class="card p-4 shadow" style="width: 100%; max-width: 400px">
+      <div class="card p-4 shadow" style="width: 100%; max-width: 400px fade-in">
         <h3 class="text-center mb-3">Agregar usuario</h3>
 
         <form id="fromAgregarUsuario" action="procesar_login.php" method="POST">
@@ -28,18 +28,23 @@
               name="usuario"
               required
             />
-    
           </div>
           <div class="mb-3">
-            <label for="usuario" class="form-label">Ingrese rol de usuario</label>
-            <input
-              type="text"
-              class="form-control"
+            <label for="rolUsuario" class="form-label"
+              >Seleccione rol de usuario</label
+            >
+            <select
+              class="form-select"
               id="rolUsuario"
               name="rolUsuario"
               required
-            />
-    
+            >
+              <option value="" disabled selected>Seleccione un rol</option>
+              <option value="Administrador">Administrador</option>
+              <option value="Usuario">Usuario</option>
+              <option value="Invitado">Invitado</option>
+              <!-- Agrega más roles según tu necesidad -->
+            </select>
           </div>
           <div class="mb-3">
             <label for="contrasena" class="form-label"
@@ -69,7 +74,9 @@
             <button type="submit" class="btn btn-primary">Agregar</button>
           </div>
           <div class="d-grid">
-            <a href="./menu_principal.html" class="btn btn-secondary">Regresar</a>
+            <a href="index.html" class="btn btn-secondary"
+              >Regresar</a
+            >
           </div>
         </form>
       </div>

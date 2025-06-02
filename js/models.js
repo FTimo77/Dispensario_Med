@@ -143,3 +143,22 @@ if (formAgregarUsuario) {
     // this.submit();
   });
 }
+
+// Función para agregar un producto al select en egreso
+function agregarProductoSelect() {
+  const productosDiv = document.getElementById('productosSeleccionados');
+  const nuevoGrupo = document.createElement('div');
+  nuevoGrupo.className = 'mb-3 producto-select-group';
+  nuevoGrupo.innerHTML = `
+    <label class="form-label">Selecciona un producto:</label>
+    <select class="form-select" name="productoSeleccionado[]">
+      <option value="">-- Selecciona --</option>
+      <option value="Paracetamol">Paracetamol</option>
+      <option value="Ibuprofeno">Ibuprofeno</option>
+      <option value="Amoxicilina">Amoxicilina</option>
+      <option value="Omeprazol">Omeprazol</option>
+    </select>
+    <div class="invalid-feedback">Debes seleccionar un producto.</div>
+  `;
+  productosDiv.appendChild(nuevoGrupo);
+}
