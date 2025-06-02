@@ -9,7 +9,7 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body class="bg-light">
     <div
@@ -77,24 +77,6 @@
 
     <!-- Bootstrap 5.0.2 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-
-
-    <script>
-
-      document.getElementById('fromAgregarUsuario').addEventListener('submit', function(event) {
-        event.preventDefault();
-
-        const contrasena = document.getElementById('contrasena')
-        const confirmarContrasena = document.getElementById('confirmarContrasena')
-        if (contrasena.value !== confirmarContrasena.value) {
-          alert('Las contraseñas no coinciden. Por favor, inténtelo de nuevo.');
-          return;
-        }
-
-      })
-
-    </script>
-
-
+    <script src="js/models.js"></script>
   </body>
 </html>
