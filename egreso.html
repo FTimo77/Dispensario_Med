@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
+    <title>Gestión de Lotes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Crear Producto</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <!-- Bootstrap Icons (opcional, para iconos) -->
     <link rel="stylesheet" href="css/style.css" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
@@ -24,96 +23,197 @@
       });
   </script>
   <body class="bg-light">
-    <!-- Barra de navegación -->
     <div id="navbar"></div>
-
-    <div class="container py-5 fade-in">
-      <h2 class="text-center mb-5">Salida de Productos</h2>
-      <form
-        id="formularioProducto"
-        onsubmit="event.preventDefault(); finalizarFormulario();"
-      >
-        <!-- Paso 1: Selección de Producto -->
-        <div class="card shadow-sm mb-4">
-          <div class="card-header bg-secondary text-white">
-            Paso 1: Selección de Producto
+    <div class="container py-5">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2
+          class="mb-0 px-3 py-2 rounded"
+          style="
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+          "
+        >
+          Egreso de Productos
+        </h2>
+        <button
+          class="btn btn-primary"
+          data-bs-toggle="modal"
+          data-bs-target="#modalAgregarLote"
+        >
+          <i class="bi bi-plus-circle"></i> Agregar Egreso
+        </button>
+      </div>
+      <form id="formEgresos">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>#</th>
+                    <th>Nombre del Producto</th>
+                    <th>Cantidad</th>
+                    <th>Comentarios</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaLotes">
+                  <!-- Los lotes se cargarán aquí dinámicamente -->
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="card-body" id="productosSeleccionados">
-            <div class="mb-3 producto-select-group">
-              <label class="form-label">Selecciona un producto:</label>
-              <select class="form-select" name="productoSeleccionado[]">
-                <option value="">-- Selecciona --</option>
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-send"></i> Enviar todos los egresos
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal para agregar egreso -->
+    <div
+      class="modal fade"
+      id="modalAgregarLote"
+      tabindex="-1"
+      aria-labelledby="modalAgregarLoteLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <form class="modal-content" id="formAgregarLote" autocomplete="off">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalAgregarLoteLabel">Agregar Egreso</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Cerrar"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="productoLote" class="form-label">Producto</label>
+              <select class="form-select" id="productoLote" required>
+                <option value="" disabled selected>
+                  Seleccione un producto
+                </option>
                 <option value="Paracetamol">Paracetamol</option>
                 <option value="Ibuprofeno">Ibuprofeno</option>
                 <option value="Amoxicilina">Amoxicilina</option>
                 <option value="Omeprazol">Omeprazol</option>
                 <!-- Agrega más productos aquí -->
               </select>
-              <div class="invalid-feedback">Debes seleccionar un producto.</div>
             </div>
-          </div>
-          <div class="mb-3">
-            <button
-              type="button"
-              class="btn btn-success"
-              onclick="agregarProductoSelect()"
-            >
-              Agregar nuevo producto
-            </button>
-          </div>
-        </div>
-        <!-- Paso 2: Información del producto -->
-        <div class="card shadow-sm mb-4">
-          <div class="card-header bg-success text-white">
-            Paso 2: Salida de Producto
-          </div>
-          <div class="card-body">
             <div class="mb-3">
-              <label for="presentacionproducto" class="form-label"
-                >Cantidad</label
-              >
+              <label for="cantidadIngreso" class="form-label">Cantidad</label>
               <input
-                type="text"
+                type="number"
                 class="form-control"
-                id="presentacionproducto"
-                placeholder="Ej. 100"
+                id="cantidadIngreso"
+                required
+                min="1"
               />
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
             </div>
             <div class="mb-3">
-              <label for="presentacionproducto" class="form-label"
+              <label for="comentarios" class="form-label"
                 >Comentarios</label
               >
               <input
                 type="text"
                 class="form-control"
-                id="presentacionproducto"
+                id="comentarios"
               />
-              <div class="invalid-feedback">Este campo es obligatorio.</div>
             </div>
           </div>
-        </div>
-
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-success">Finalizar</button>
-        </div>
-      </form>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-success">Agregar</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script src="js/models.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- SVG decorativo al pie -->
-    <div class="wave-container">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" style="display:block; width:100vw; height:auto; margin:0; padding:0;">
-        <path
-          fill="#0099ff"
-          fill-opacity="1"
-          d="M0,256L48,261.3C96,267,192,277,288,240C384,203,480,117,576,101.3C672,85,
-          768,139,864,144C960,149,1056,107,1152,85.3C1248,64,1344,64,1392,64L1440,64L1440,
-          320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,
-          576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-        ></path>
-      </svg>
-    </div>
+    <script>
+      // Datos de ejemplo para egresos
+      let lotes = [
+        {
+          producto: "Paracetamol",
+          cantidad: 100,
+          comentarios: "Sin observaciones"
+        },
+        {
+          producto: "Ibuprofeno",
+          cantidad: 50,
+          comentarios: "Revisar stock"
+        }
+      ];
+
+      function renderLotes() {
+        const tbody = document.getElementById("tablaLotes");
+        tbody.innerHTML = "";
+        lotes.forEach((l, i) => {
+          tbody.innerHTML += `
+            <tr>
+              <td>${i + 1}</td>
+              <td>${l.producto || "-"}</td>
+              <td>${l.cantidad}</td>
+              <td>${l.comentarios || ""}</td>
+              <td>
+                <button class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="eliminarLote(${i})">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      }
+
+      function eliminarLote(idx) {
+        if (confirm("¿Seguro que desea eliminar este egreso?")) {
+          lotes.splice(idx, 1);
+          renderLotes();
+        }
+      }
+
+      document
+        .getElementById("formAgregarLote")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const producto = document.getElementById("productoLote").value;
+          const cantidad = document.getElementById("cantidadIngreso").value;
+          const comentarios = document.getElementById("comentarios").value;
+          if (producto && cantidad) {
+            lotes.push({ producto, cantidad, comentarios });
+            renderLotes();
+            this.reset();
+            var modal = bootstrap.Modal.getInstance(
+              document.getElementById("modalAgregarLote")
+            );
+            modal.hide();
+          }
+        });
+
+      // Enviar todos los egresos (puedes adaptar para AJAX o backend)
+      document.getElementById("formEgresos").addEventListener("submit", function(e) {
+        e.preventDefault();
+        // Aquí puedes enviar el array 'lotes' al backend con fetch/AJAX
+        alert("Egresos enviados:\n" + JSON.stringify(lotes, null, 2));
+        // Si quieres limpiar la tabla después de enviar:
+        // lotes = [];
+        // renderLotes();
+      });
+
+      // Inicializar tabla al cargar
+      renderLotes();
+    </script>
   </body>
 </html>

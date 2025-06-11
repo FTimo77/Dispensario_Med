@@ -14,6 +14,14 @@
       rel="stylesheet"
     />
   </head>
+  <!--Script para cargar la barra de navegación -->
+  <script>
+    fetch("navbar.html")
+      .then((res) => res.text())
+      .then((data) => {
+        document.getElementById("navbar").innerHTML = data;
+      });
+  </script>
   <body class="bg-light">
     <div id="navbar"></div>
     <div class="container py-5">
@@ -119,15 +127,9 @@
       </div>
     </div>
 
+    <script src="js/models.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-      // Navbar dinámico
-      fetch("includes/navbar.html")
-        .then((res) => res.text())
-        .then((data) => {
-          document.getElementById("navbar").innerHTML = data;
-        });
-
       // Datos de ejemplo (puedes reemplazar por datos reales del backend)
       let usuarios = [
         { usuario: "admin", rol: "Administrador", estado: "Activo" },
