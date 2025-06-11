@@ -24,11 +24,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     } else {
         $conexion = new Conexion();
         $conn = $conexion->connect();
-
-        if (validarUsuario($conn, $usuario, $clave)) {
+        $rol_usuario =validarUsuario($conn, $usuario, $clave);
+        if ($rol_usuario) {
             $_SESSION['usuario'] = $usuario;
             $_SESSION['bodega'] = $bodega;
-            header("Location: menu_principal.html");
+            $_SESSION['rol'] = $rol_usuario;
+            header("Location: menu_principal.php");
             mysqli_close($conn);
             exit;
         } else {

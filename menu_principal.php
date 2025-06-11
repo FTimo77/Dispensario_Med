@@ -1,3 +1,10 @@
+<?php
+session_start( );
+echo ' usuario '.$_SESSION['usuario'] ;
+echo ' bodega '.$_SESSION['bodega'] ;
+echo ' rol '.$_SESSION['rol'] ;
+?>
+
 <!DOCTYPE html>
 <html lang="es">
   <head>
