@@ -17,62 +17,23 @@ function finalizarFormulario() {
     presentacion.classList.remove("is-invalid");
   }
 
-  // Validar fechas
-  const fechaElab = document.getElementById("fechaElaboracion");
-  const fechaCad = document.getElementById("fechaCaducidad");
-  if (!fechaElab.value) {
-    fechaElab.classList.add("is-invalid");
+  // Validar categoría: debe estar seleccionada o escrita una nueva
+  const categoriaSelect = document.getElementById("categoriaSeleccionada");
+  const nuevaCategoria = document.getElementById("nueva_categoria");
+  const categoriaSeleccionada = categoriaSelect.value.trim();
+  const nuevaCategoriaValor = nuevaCategoria.value.trim();
+
+  if (!categoriaSeleccionada && !nuevaCategoriaValor) {
+    categoriaSelect.classList.add("is-invalid");
+    nuevaCategoria.classList.add("is-invalid");
     valido = false;
   } else {
-    fechaElab.classList.remove("is-invalid");
-  }
-  if (!fechaCad.value || fechaCad.value <= fechaElab.value) {
-    fechaCad.classList.add("is-invalid");
-    valido = false;
-  } else {
-    fechaCad.classList.remove("is-invalid");
+    categoriaSelect.classList.remove("is-invalid");
+    nuevaCategoria.classList.remove("is-invalid");
   }
 
-  // Validar producto seleccionado (si aplica)
-  const producto = document.getElementById("productoSeleccionado");
-  if (producto && !producto.value) {
-    producto.classList.add("is-invalid");
-    valido = false;
-  } else if (producto) {
-    producto.classList.remove("is-invalid");
-  }
-
-  // Validar que haya al menos una categoría
-  const lista = document.getElementById("lista-items");
-  const categoriaSeleccionada = document.getElementById("categoriaSeleccionada").value;
-
-  if (lista.children.length === 0) {
-    document.getElementById("nuevoElemento").classList.add("is-invalid");
-    valido = false;
-  } else {
-    document.getElementById("nuevoElemento").classList.remove("is-invalid");
-  }
-
-  // Validar que una categoría esté seleccionada
-  if (!categoriaSeleccionada) {
-    lista.classList.add("is-invalid");
-    valido = false;
-  } else {
-    lista.classList.remove("is-invalid");
-  }
-
-  if (!valido) return;
-
-  alert("Formulario completado correctamente.");
-  document.getElementById("formularioProducto").reset();
-  lista.innerHTML = "";
-
-  // Limpiar clases de error
-  nombre.classList.remove("is-invalid");
-  presentacion.classList.remove("is-invalid");
-  fechaElab.classList.remove("is-invalid");
-  fechaCad.classList.remove("is-invalid");
-  if (producto) producto.classList.remove("is-invalid");
+  // Si no es válido, evita el envío
+  return valido;
 }
 
 // Función para agregar una categoría a la lista
