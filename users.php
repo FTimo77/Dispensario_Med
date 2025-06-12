@@ -14,15 +14,16 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
       rel="stylesheet"
     />
+    <style>
+      .btn_editar{
+        color: green;
+      }
+      .btn_eliminar{
+        color: red;
+      }
+    </style>
   </head>
-  <!--Script para cargar la barra de navegación -->
-  <script>
-    fetch("navbar.html")
-      .then((res) => res.text())
-      .then((data) => {
-        document.getElementById("navbar").innerHTML = data;
-      });
-  </script>
+  
   <body class="bg-light">
     <div id="navbar"></div>
     <div class="container py-5">
@@ -36,31 +37,57 @@
         >
           Usuarios
         </h2>
-        <button
-          class="btn btn-primary"
-          data-bs-toggle="modal"
-          data-bs-target="#modalAgregarUsuario"
-        >
+        <button class="btn btn-primary" onclick="abrirModalAgregar()">
           <i class="bi bi-person-plus"></i> Agregar Usuario
-        </button>
+      </button>
       </div>
       <div class="card shadow-sm">
         <div class="card-body">
           <div class="table-responsive">
-            <table class="table table-hover align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th>#</th>
-                  <th>Usuario</th>
-                  <th>Rol</th>
-                  <th>Estado</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="tablaUsuarios">
-                <!-- Los usuarios se cargarán aquí dinámicamente -->
-              </tbody>
-            </table>
+         <table class="table table-hover align-middle">
+            <tr>
+              <th>ID</th>
+              <th>Nombre usuario</th>
+              <th>Rol Usuario</th>
+              <th>Password</th>
+              <th>Estado</th>
+              <th>Editar</th>
+              <th>Eliminar</th>
+            </tr>
+          </thead>
+          <tbody id="tablaUsuarios">
+            <?php
+            require_once "./config/conexion.php";
+            require_once "./includes/usuario_model.php";
+            
+            $con = new Conexion();
+            $con = $con->connect();
+            $usuarios = obtenerUsuarios($con);
+
+            if ($usuarios) {
+                foreach ($usuarios as $usuario) {
+                    echo "<tr>";
+                    echo "<td>" . htmlspecialchars($usuario['ID_USUARIO']) . "</td>";
+                    echo "<td>" . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "</td>";
+                    echo "<td>" . htmlspecialchars($usuario['COD_ROL']) . "</td>";
+                    echo "<td>" . htmlspecialchars($usuario['PASS_USUARIO']) . "</td>";
+                    echo "<td>" . htmlspecialchars($usuario['ESTADO_USUARIO']) . "</td>";
+                    echo "<td><a class='btn_editar' href='#' onclick=\"abrirModalEditar('"
+                  . htmlspecialchars($usuario['ID_USUARIO']) . "', '"
+                  . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "', '"
+                  . htmlspecialchars($usuario['COD_ROL']) . "', '"
+                  . htmlspecialchars($usuario['ESTADO_USUARIO']) . "')\">
+                  <i class='bi bi-pencil-square'></i></a></td>";
+
+                    echo "<td><a class='btn_eliminar' href='#'><i class='bi bi-trash3-fill'></i></a></td>"  ;
+                  }
+            } else {
+                echo "<tr><td colspan='4' class='text-center'>No hay datos</td></tr>";
+            }
+            ?>
+        </tbody>
+      </table>
+
           </div>
         </div>
       </div>
@@ -130,68 +157,29 @@
 
     <script src="js/models.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-      // Datos de ejemplo (puedes reemplazar por datos reales del backend)
-      let usuarios = [
-        { usuario: "admin", rol: "Administrador", estado: "Activo" },
-        { usuario: "juan", rol: "Usuario", estado: "Activo" },
-        { usuario: "maria", rol: "Invitado", estado: "Inactivo" },
-      ];
+   
+   
+      <script>
+  const modal = new bootstrap.Modal(document.getElementById('modalAgregarUsuario'));
 
-      function renderUsuarios() {
-        const tbody = document.getElementById("tablaUsuarios");
-        tbody.innerHTML = "";
-        usuarios.forEach((u, i) => {
-          tbody.innerHTML += `
-        <tr>
-          <td>${i + 1}</td>
-          <td>${u.usuario}</td>
-          <td>${u.rol}</td>
-          <td>
-            <span class="badge ${
-              u.estado === "Activo" ? "bg-success" : "bg-secondary"
-            }">${u.estado}</span>
-          </td>
-          <td>
-            <a class="btn btn-sm btn-outline-primary me-1" title="Editar" href="#">
-              <i class="bi bi-pencil"></i>
-            </a>
-            <button class="btn btn-sm btn-outline-danger" title="Eliminar" onclick="eliminarUsuario(${i})">
-              <i class="bi bi-trash"></i>
-            </button>
-          </td>
-        </tr>
-      `;
-        });
-      }
+  function abrirModalAgregar() {
+    document.getElementById('formAgregarUsuario').reset();
+    document.getElementById('nuevoUsuario').value = '';
+    document.getElementById('nuevoRol').value = '';
+    document.getElementById('nuevoEstado').value = 'Activo';
+    modal.show();
+  }
 
-      function eliminarUsuario(idx) {
-        if (confirm("¿Seguro que desea eliminar este usuario?")) {
-          usuarios.splice(idx, 1);
-          renderUsuarios();
-        }
-      }
+  function abrirModalEditar(id, nombre, rol, estado) {
+    document.getElementById('nuevoUsuario').value = nombre;
+    document.getElementById('nuevoRol').value = rol;
+    document.getElementById('nuevoEstado').value = estado;
+    modal.show();
 
-      document
-        .getElementById("formAgregarUsuario")
-        .addEventListener("submit", function (e) {
-          e.preventDefault();
-          const usuario = document.getElementById("nuevoUsuario").value.trim();
-          const rol = document.getElementById("nuevoRol").value;
-          const estado = document.getElementById("nuevoEstado").value;
-          if (usuario && rol && estado) {
-            usuarios.push({ usuario, rol, estado });
-            renderUsuarios();
-            this.reset();
-            var modal = bootstrap.Modal.getInstance(
-              document.getElementById("modalAgregarUsuario")
-            );
-            modal.hide();
-          }
-        });
+    
+  }
+</script>
 
-      // Inicializar tabla al cargar
-      renderUsuarios();
-    </script>
+
   </body>
 </html>
