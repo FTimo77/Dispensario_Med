@@ -17,39 +17,46 @@ require_once 'includes/producto_model.php';
 $conexion = new Conexion();
 $conn = $conexion->connect();
 
-// Eliminar producto si se solicita
+// Eliminar producto (cambio de estado a 0)
 if (isset($_GET['eliminar'])) {
   $idEliminar = intval($_GET['eliminar']);
-  if (eliminarProducto($conn, $idEliminar)) {
+  $stmt = $conn->prepare("UPDATE producto SET estado_prod=0 WHERE id_prooducto=?");
+  $stmt->bind_param("i", $idEliminar);
+  if ($stmt->execute()) {
     header("Location: producto.php?success=2");
     exit;
   } else {
     $mensaje = "Error al eliminar el producto.";
   }
+  $stmt->close();
 }
 
-// Elimina categoría si se solicita
+// Elimina categoría (cambio de estado a 0)
 if (isset($_GET['eliminar_categoria'])) {
   $idCatEliminar = intval($_GET['eliminar_categoria']);
-  $stmt = $conn->prepare("DELETE FROM categoria WHERE id_categoria=?");
-  $stmt->bind_param("i", $idCatEliminar);
-  if ($stmt->execute()) {
-    header("Location: producto.php?success=3");
-    exit;
+  $stmt = $conn->prepare("UPDATE categoria SET estado_cat=0 WHERE id_categoria=?");
+  if (!$stmt) {
+    $mensaje = "Error en la preparación de la consulta: " . $conn->error;
   } else {
-    // Error 1451 = restricción de clave foránea (productos asociados)
-    if ($conn->errno == 1451) {
-      $mensaje = "No se puede eliminar la categoría porque tiene productos asociados.";
+    $stmt->bind_param("i", $idCatEliminar);
+    if ($stmt->execute()) {
+      header("Location: producto.php?success=3");
+      exit;
     } else {
-      $mensaje = "Error al eliminar la categoría.";
+      // Error 1451 = restricción de clave foránea (productos asociados)
+      if ($conn->errno == 1451) {
+        $mensaje = "No se puede eliminar la categoría porque tiene productos asociados.";
+      } else {
+        $mensaje = "Error al eliminar la categoría.";
+      }
     }
+    $stmt->close();
   }
-  $stmt->close();
 }
 
 // Cargar categorías para el select
 $categorias = [];
-$result = $conn->query("SELECT id_categoria, nombre_cat FROM categoria");
+$result = $conn->query("SELECT id_categoria, nombre_cat FROM categoria WHERE estado_cat = 1");
 if ($result) {
   while ($row = $result->fetch_assoc()) {
     $categorias[] = $row;
@@ -66,7 +73,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   if ($nombre !== "" && $presentacion !== "" && ($categoria_id !== "" || $nueva_categoria !== "")) {
     // Si se ingresó una nueva categoría
     if ($nueva_categoria !== "") {
-      $stmt_cat = $conn->prepare("INSERT INTO categoria (nombre_cat) VALUES (?)");
+      $stmt_cat = $conn->prepare("INSERT INTO categoria (nombre_cat, estado_cat) VALUES (?, 1)");
       $stmt_cat->bind_param("s", $nueva_categoria);
       if ($stmt_cat->execute()) {
         $categoria_id = $conn->insert_id;
