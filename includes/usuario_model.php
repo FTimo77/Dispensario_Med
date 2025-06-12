@@ -15,14 +15,21 @@ function validarUsuario($conn, $usuario, $clave) {
     return null;
 }
 function obtenerUsuarios($con) {
-    $stmt = $con->prepare("SELECT * FROM usuario");
+    $stmt = $con->prepare("
+    SELECT a.ID_USUARIO, a.NOMBRE_USUARIO, a.PASS_USUARIO, a.ESTADO_USUARIO, b.NOMBRE_ROL
+    FROM usuario AS a
+    INNER JOIN rol_usuario AS b ON a.COD_ROL = b.COD_ROL");
+
     $stmt->execute();
     $result = $stmt->get_result();
+
 
     if ($result->num_rows === 0) {
         $stmt->close();
         return null; // No hay registros
     }
+
+
 
     $usuarios = [];
     while ($fila = $result->fetch_assoc()) {

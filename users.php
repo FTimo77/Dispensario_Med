@@ -1,3 +1,42 @@
+
+<?php
+  require_once "./config/conexion.php";
+  require_once "./includes/usuario_model.php";
+
+  session_start();
+  if (!isset($_SESSION['usuario'])) {
+      header("Location: login.php");
+      exit();
+  }
+  $conexion = new Conexion();
+  $conexion = $conexion->connect();
+  if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+      $nombre_usuario = $_POST['nuevoUsuario'];
+      $cod_rol = $_POST['nuevoRol'];
+      $pass_usuario = $_POST['nuevoPassword'];
+      $estado_usuario = $_POST['nuevoEstado'];
+
+      if (insert_usuario($conexion,  $cod_rol, $nombre_usuario, $pass_usuario, $estado_usuario)) {
+          header("Location: users.php");
+          exit();
+      } else {
+          echo "<script>alert('Error al agregar el usuario');</script>";
+      }
+  }
+  
+  function insert_usuario($conexion, $cod_rol,$nombre_usuario, $pass_usuario, $estado_usuario) {
+      $stmt = $conexion->prepare("INSERT INTO usuario (COD_ROL, NOMBRE_USUARIO, PASS_USUARIO, ESTADO_USUARIO) VALUES (?, ?, ?, ?)");
+      $stmt->bind_param("isss",$cod_rol,  $nombre_usuario, $pass_usuario, $estado_usuario);
+      if ($stmt->execute()) {
+          return true;
+      } else {
+          return false;
+      }
+  }
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -57,8 +96,7 @@
           </thead>
           <tbody id="tablaUsuarios">
             <?php
-            require_once "./config/conexion.php";
-            require_once "./includes/usuario_model.php";
+            
             
             $con = new Conexion();
             $con = $con->connect();
@@ -69,13 +107,13 @@
                     echo "<tr>";
                     echo "<td>" . htmlspecialchars($usuario['ID_USUARIO']) . "</td>";
                     echo "<td>" . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "</td>";
-                    echo "<td>" . htmlspecialchars($usuario['COD_ROL']) . "</td>";
+                    echo "<td>" . htmlspecialchars($usuario['NOMBRE_ROL']) . "</td>";
                     echo "<td>" . htmlspecialchars($usuario['PASS_USUARIO']) . "</td>";
                     echo "<td>" . htmlspecialchars($usuario['ESTADO_USUARIO']) . "</td>";
                     echo "<td><a class='btn_editar' href='#' onclick=\"abrirModalEditar('"
                   . htmlspecialchars($usuario['ID_USUARIO']) . "', '"
                   . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "', '"
-                  . htmlspecialchars($usuario['COD_ROL']) . "', '"
+                  . htmlspecialchars($usuario['NOMBRE_ROL']) . "', '"
                   . htmlspecialchars($usuario['ESTADO_USUARIO']) . "')\">
                   <i class='bi bi-pencil-square'></i></a></td>";
 
@@ -102,9 +140,9 @@
       aria-hidden="true"
     >
       <div class="modal-dialog">
-        <form class="modal-content" id="formAgregarUsuario" autocomplete="off">
+        <form class="modal-content" id="formAgregarUsuario" autocomplete="off" method="POST" action="">
           <div class="modal-header">
-            <h5 class="modal-title" id="modalAgregarUsuarioLabel">
+            <h5 class="modal-title" id="abrirModalAgregarLabel">
               Agregar Usuario
             </h5>
             <button
@@ -116,26 +154,38 @@
           </div>
           <div class="modal-body">
             <div class="mb-3">
+              <label for="nuevoRol" class="form-label">Rol</label>
+              <select class="form-select" id="nuevoRol" name="nuevoRol" required>
+                <option value="" disabled selected>Seleccione un rol</option>
+                <option value="1">Administrador</option>
+                <option value="2">Doctora</option>
+                <option value="3">Enfermera</option>
+              </select>
+            </div>
+            <div class="mb-3">
               <label for="nuevoUsuario" class="form-label">Usuario</label>
               <input
                 type="text"
                 class="form-control"
                 id="nuevoUsuario"
+                name="nuevoUsuario"
+                placeholder="Ingrese el nombre de usuario"
                 required
               />
             </div>
             <div class="mb-3">
-              <label for="nuevoRol" class="form-label">Rol</label>
-              <select class="form-select" id="nuevoRol" required>
-                <option value="" disabled selected>Seleccione un rol</option>
-                <option value="Administrador">Administrador</option>
-                <option value="Usuario">Usuario</option>
-                <option value="Invitado">Invitado</option>
-              </select>
-            </div>
+              <label for="nuevoPassword" class="form-label">Contraseña</label>
+              <input
+                type="password"
+                class="form-control"
+                id="nuevoPassword"
+                name="nuevoPassword"
+                placeholder="Ingrese la contraseña"
+                required
+              />
             <div class="mb-3">
               <label for="nuevoEstado" class="form-label">Estado</label>
-              <select class="form-select" id="nuevoEstado" required>
+              <select class="form-select" id="nuevoEstado" name="nuevoEstado" required>
                 <option value="Activo" selected>Activo</option>
                 <option value="Inactivo">Inactivo</option>
               </select>
