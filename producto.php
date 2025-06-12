@@ -1,4 +1,5 @@
 <?php
+session_start();
 $mensaje = "";
 if (isset($_GET['success'])) {
   if ($_GET['success'] == 1) {
@@ -266,6 +267,7 @@ $conn->close();
     </div>
   </div>
   <script src="js/models.js"></script>
+  <script src="js/navbar-submenu.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <div class="wave-container">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"
