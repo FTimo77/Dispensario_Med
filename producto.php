@@ -119,7 +119,7 @@ $conn->close();
 </head>
 
 <body class="bg-light">
-  <div id="navbar"></div>
+  <?php include 'includes/navbar.php'; ?>
   <div class="container py-5 fade-in">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="mb-0 px-3 py-2 rounded"

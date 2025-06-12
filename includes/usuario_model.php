@@ -14,30 +14,34 @@ function validarUsuario($conn, $usuario, $clave) {
     $stmt->close();
     return null;
 }
+
 function obtenerUsuarios($con) {
     $stmt = $con->prepare("
-    SELECT a.ID_USUARIO, a.NOMBRE_USUARIO, a.PASS_USUARIO, a.ESTADO_USUARIO, b.NOMBRE_ROL
-    FROM usuario AS a
-    INNER JOIN rol_usuario AS b ON a.COD_ROL = b.COD_ROL");
-
+        SELECT 
+            a.ID_USUARIO, 
+            a.NOMBRE_USUARIO, 
+            a.PASS_USUARIO, 
+            b.NOMBRE_ROL,
+            a.codigo_bodega
+        FROM usuario AS a
+        INNER JOIN rol_usuario AS b ON a.COD_ROL = b.COD_ROL
+        WHERE a.ESTADO_USUARIO = 1
+    ");
     $stmt->execute();
     $result = $stmt->get_result();
 
-
     if ($result->num_rows === 0) {
         $stmt->close();
-        return null; // No hay registros
+        return null;
     }
-
-
 
     $usuarios = [];
     while ($fila = $result->fetch_assoc()) {
+        $fila['CODIGO_BODEGA'] = $fila['codigo_bodega'];
         $usuarios[] = $fila;
     }
 
     $stmt->close();
-    return $usuarios; // Devuelve arreglo de usuarios
+    return $usuarios;
 }
-
 ?>

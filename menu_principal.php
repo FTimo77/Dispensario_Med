@@ -1,8 +1,7 @@
 <?php
-session_start( );
-echo ' usuario '.$_SESSION['usuario'] ;
-echo ' bodega '.$_SESSION['bodega'] ;
-echo ' rol '.$_SESSION['rol'] ;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 
 <!DOCTYPE html>
@@ -19,7 +18,7 @@ echo ' rol '.$_SESSION['rol'] ;
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
   </head>
   <body class="bg-light">
-    <div id="navbar"></div>
+    <?php include 'includes/navbar.php'; ?>
     <div class="container mt-5 fade-in">
       <h2 class="text-center mb-4">Bienvenido al Menú Principal</h2>
       <p class="text-center">Selecciona una opción del menú para continuar.</p>

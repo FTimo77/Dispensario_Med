@@ -82,11 +82,14 @@ function activarSubmenus() {
 }
 
 // Cargar el navbar y luego activar submenús
-fetch("./includes/navbar.html")
+fetch("./includes/navbar.php")
   .then((res) => res.text())
   .then((data) => {
-    document.getElementById("navbar").innerHTML = data;
-    activarSubmenus();
+    const navbarElem = document.getElementById("navbar");
+    if (navbarElem) {
+      navbarElem.innerHTML = data;
+      activarSubmenus();
+    }
   });
 
 // Validación del formulario de agregar usuario
