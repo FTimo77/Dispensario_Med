@@ -86,7 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     // Insertar producto solo si hay un id de categoría válido
     if ($categoria_id !== "") {
-      if (agregarProducto($conn, $nombre, $presentacion, $categoria_id)) {
+      if (agregarProducto($conn, $nombre, $presentacion, $categoria_id, $_SESSION['bodega'])) {
         if ($mensaje == "") {
           $mensaje = "Producto creado correctamente.";
         }
@@ -204,7 +204,8 @@ $conn->close();
                   <option value="">Seleccione una categoría</option>
                   <?php foreach ($categorias as $cat): ?>
                     <option value="<?php echo $cat['id_categoria']; ?>">
-                      <?php echo htmlspecialchars($cat['nombre_cat']); ?></option>
+                      <?php echo htmlspecialchars($cat['nombre_cat']); ?>
+                    </option>
                   <?php endforeach; ?>
                 </select>
                 <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
@@ -279,4 +280,5 @@ $conn->close();
     </svg>
   </div>
 </body>
+
 </html>

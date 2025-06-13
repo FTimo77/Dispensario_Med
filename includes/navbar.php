@@ -56,7 +56,7 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
             <li>
-              <a class="dropdown-item" href="./ingreso.html"><i class="bi bi-box-arrow-in-down"></i> Ingreso de
+              <a class="dropdown-item" href="./ingreso.php"><i class="bi bi-box-arrow-in-down"></i> Ingreso de
                 Stock</a>
             </li>
             <li class="dropdown-submenu">

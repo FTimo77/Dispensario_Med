@@ -1,6 +1,6 @@
 <?php
 function validarUsuario($conn, $usuario, $clave) {
-    $stmt = $conn->prepare("SELECT * FROM usuario WHERE nombre_usuario = ? AND pass_usuario = ? AND ESTADO_USUARIO = 'A'");
+    $stmt = $conn->prepare("SELECT * FROM usuario WHERE nombre_usuario = ? AND pass_usuario = ? AND ESTADO_USUARIO = '1'");
     $stmt->bind_param("ss", $usuario, $clave);
     $stmt->execute();
     $result = $stmt->get_result();
