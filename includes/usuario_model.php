@@ -14,19 +14,19 @@ function validarUsuario($conn, $usuario, $clave) {
     $stmt->close();
     return null;
 }
-
 function obtenerUsuarios($con) {
     $stmt = $con->prepare("
         SELECT 
-            a.ID_USUARIO, 
-            a.NOMBRE_USUARIO, 
-            a.PASS_USUARIO, 
-            b.NOMBRE_ROL,
-            a.codigo_bodega
-        FROM usuario AS a
-        INNER JOIN rol_usuario AS b ON a.COD_ROL = b.COD_ROL
-        WHERE a.ESTADO_USUARIO = 1
+            u.ID_USUARIO, 
+            u.NOMBRE_USUARIO, 
+            u.PASS_USUARIO, 
+            u.ESTADO_USUARIO,
+            r.NOMBRE_ROL
+        FROM usuario AS u
+        INNER JOIN rol_usuario AS r ON u.COD_ROL = r.COD_ROL
+        WHERE u.ESTADO_USUARIO = 1
     ");
+    
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -37,11 +37,11 @@ function obtenerUsuarios($con) {
 
     $usuarios = [];
     while ($fila = $result->fetch_assoc()) {
-        $fila['CODIGO_BODEGA'] = $fila['codigo_bodega'];
         $usuarios[] = $fila;
     }
 
     $stmt->close();
     return $usuarios;
 }
+
 ?>

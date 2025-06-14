@@ -15,10 +15,10 @@ function obtenerProductos($conn)
     return $productos;
 }
 
-function agregarProducto($conn, $nombre, $presentacion, $categoria_id, $codigo_bodega)
+function agregarProducto($conn, $nombre, $presentacion, $categoria_id, $codigo_bodega, $stock_minimo)
 {
-    $stmt = $conn->prepare("INSERT INTO producto (NOM_PROD, PRESENTACION_PROD, id_categoria, codigo_bodega, estado_prod) VALUES (?, ?, ?, ?, 1)");
-    $stmt->bind_param("ssii", $nombre, $presentacion, $categoria_id, $codigo_bodega);
+    $stmt = $conn->prepare("INSERT INTO producto (NOM_PROD, PRESENTACION_PROD, id_categoria, codigo_bodega, STOCK_MIN_PROD, estado_prod) VALUES (?, ?, ?, ?, ?, 1)");
+    $stmt->bind_param("ssiis", $nombre, $presentacion, $categoria_id, $codigo_bodega, $stock_minimo);
     $ok = $stmt->execute();
     $stmt->close();
     return $ok;

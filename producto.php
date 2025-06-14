@@ -70,6 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $presentacion = trim($_POST['presentacionproducto']);
   $categoria_id = trim($_POST['categoriaSeleccionada']);
   $nueva_categoria = trim($_POST['nueva_categoria']);
+  $stock_minimo = trim($_POST['stockminimo']);
 
   if ($nombre !== "" && $presentacion !== "" && ($categoria_id !== "" || $nueva_categoria !== "")) {
     // Si se ingresó una nueva categoría
@@ -86,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     // Insertar producto solo si hay un id de categoría válido
     if ($categoria_id !== "") {
-      if (agregarProducto($conn, $nombre, $presentacion, $categoria_id, $_SESSION['bodega'])) {
+      if (agregarProducto($conn, $nombre, $presentacion, $categoria_id, $_SESSION['bodega'], $stock_minimo)) {
         if ($mensaje == "") {
           $mensaje = "Producto creado correctamente.";
         }
@@ -216,6 +217,11 @@ $conn->close();
               <input type="text" class="form-control mt-2" id="nueva_categoria" name="nueva_categoria"
                 placeholder="O escriba una nueva categoría" />
               <small class="text-muted">Seleccione una categoría existente o escriba una nueva.</small>
+            </div>
+            <div class="col-12">
+              <label for="stockmin" class="form-label">Stock Mínimo</label>
+              <input type="number" class="form-control" id="stockmin" name="stockminimo"
+                placeholder="Ej. 1" required />
             </div>
           </div>
         </div>

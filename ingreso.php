@@ -17,38 +17,58 @@ if ($res_prod) {
 $mensaje = "";
 
 // Procesar ingreso de lotes
+// Procesar ingreso de lotes
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productos_lote = $_POST['productoLote'] ?? [];
     $nombres_lote = $_POST['nombreLote'] ?? [];
     $fechas_fabri = $_POST['fechaElaboracion'] ?? [];
     $fechas_venc = $_POST['fechaCaducidad'] ?? [];
+    $cantidades = $_POST['cantidad'] ?? [];
     $total = count($productos_lote);
     $ok = true;
 
     if ($total > 0) {
         $stmt = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING) VALUES (?, ?, ?, ?, ?)");
         $fecha_ing = date('Y-m-d'); // Fecha de ingreso actual
+
         for ($i = 0; $i < $total; $i++) {
             $id_producto = $productos_lote[$i];
             $num_lote = $nombres_lote[$i];
-            $fech_fabri = $fechas_fabri[$i] . "-01"; // Convierte "YYYY-MM" a "YYYY-MM-01"
+            $fech_fabri = $fechas_fabri[$i] . "-01";
             $fech_venc = $fechas_venc[$i] . "-01";
+            $cantidad_ingresada = (int)$cantidades[$i];
+
+            // Insertar lote
             $stmt->bind_param("sisss", $num_lote, $id_producto, $fech_venc, $fech_fabri, $fecha_ing);
             if (!$stmt->execute()) {
                 $ok = false;
                 break;
             }
+
+            // Actualizar stock del producto
+            $res_stock = $conn->query("SELECT stock_act_prod FROM producto WHERE id_prooducto = $id_producto");
+            if ($res_stock && $res_stock->num_rows > 0) {
+                $row = $res_stock->fetch_assoc();
+                $nuevo_stock = (int)$row['stock_act_prod'] + $cantidad_ingresada;
+                $conn->query("UPDATE producto SET stock_act_prod = $nuevo_stock WHERE id_prooducto = $id_producto");
+            } else {
+                $ok = false;
+                break;
+            }
         }
+
         $stmt->close();
+
         if ($ok) {
-            $mensaje = '<div class="alert alert-success text-center">Lotes ingresados correctamente.</div>';
+            $mensaje = '<div class="alert alert-success text-center">Lotes ingresados correctamente y stock actualizado.</div>';
         } else {
-            $mensaje = '<div class="alert alert-danger text-center">Error al ingresar los lotes.</div>';
+            $mensaje = '<div class="alert alert-danger text-center">Error al ingresar los lotes o actualizar el stock.</div>';
         }
     } else {
         $mensaje = '<div class="alert alert-warning text-center">No hay lotes para ingresar.</div>';
     }
 }
+
 $conn->close();
 ?>
 
@@ -131,11 +151,15 @@ $conn->close();
             </div>
             <div class="mb-3">
               <label for="fechaElaboracion" class="form-label">Fecha de Elaboración</label>
-              <input type="month" class="form-control" id="fechaElaboracion" required />
+              <input type="month" class="form-control" id="fechaElaboracion" placeholder="YYYY-MM" required />
             </div>
             <div class="mb-3">
               <label for="fechaCaducidad" class="form-label">Fecha de Caducidad</label>
-              <input type="month" class="form-control" id="fechaCaducidad" required />
+              <input type="month" class="form-control" id="fechaCaducidad" placeholder="YYYY-MM" required />
+            </div>
+            <div class="mb-3">
+              <label for="cantidad" class="form-label">Cantidad</label>
+              <input type="number" class="form-control" id="cantidad" required />
             </div>
           </div>
           <div class="modal-footer">
@@ -146,6 +170,7 @@ $conn->close();
       </div>
     </div>
 
+    <script src="js/navbar-submenu.js"></script>
     <script src="js/models.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -163,6 +188,7 @@ $conn->close();
                 <input type="hidden" name="nombreLote[]" value="${l.nombre}">
                 <input type="hidden" name="fechaElaboracion[]" value="${l.elaboracion}">
                 <input type="hidden" name="fechaCaducidad[]" value="${l.caducidad}">
+                <input type="hidden" name="cantidad[]" value="${l.cantidad}">
                 ${i + 1}
               </td>
               <td>${l.producto_nombre}</td>
@@ -187,8 +213,9 @@ $conn->close();
         const nombre = document.getElementById("nombreLote").value.trim();
         const elaboracion = document.getElementById("fechaElaboracion").value;
         const caducidad = document.getElementById("fechaCaducidad").value;
+        const cantidad = document.getElementById("cantidad").value;
         if (producto && nombre && elaboracion && caducidad) {
-          lotes.push({ producto, producto_nombre, nombre, elaboracion, caducidad });
+          lotes.push({ producto, producto_nombre, nombre, elaboracion, caducidad, cantidad });
           renderLotes();
           document.getElementById("formAgregarLote").reset();
           var modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarLote"));
@@ -216,3 +243,5 @@ $conn->close();
     </script>
   </body>
 </html>
+
+
