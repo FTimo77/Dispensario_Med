@@ -1,12 +1,16 @@
 <?php
+
+    session_start();
+
+if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit;
+}
 require_once "./config/conexion.php";
 require_once "./includes/usuario_model.php";
 
-session_start();
-if (!isset($_SESSION['usuario'])) {
-    header("Location: login.php");
-    exit();
-}
+
 
 $conexion = new Conexion();
 $conexion = $conexion->connect();

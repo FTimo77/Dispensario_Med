@@ -1,6 +1,12 @@
 <?php
-// filepath: d:\Instituto\Prácticas\Respaldo\ingreso.php
-session_start();
+//valida sesion
+  session_start();
+
+if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit;
+}
 require_once 'config/conexion.php';
 
 // Obtener productos activos para el select

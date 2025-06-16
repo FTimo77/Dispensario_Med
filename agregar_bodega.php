@@ -1,7 +1,10 @@
 <?php
-// filepath: d:\Instituto\Prácticas\Respaldo\agregar_bodega.php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+  session_start();
+
+if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit;
 }
 require_once 'config/conexion.php';
 

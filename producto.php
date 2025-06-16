@@ -1,5 +1,13 @@
 <?php
-session_start();
+
+  session_start();
+
+if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit;
+}
+
 $mensaje = "";
 if (isset($_GET['success'])) {
   if ($_GET['success'] == 1) {

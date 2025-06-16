@@ -15,7 +15,7 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="inicioDropdown">
             <li>
-              <a class="dropdown-item" href="index.php">
+              <a class="dropdown-item" href="includes/logout.php">
                 <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
               </a>
             </li>
@@ -65,12 +65,12 @@
               </a>
               <ul class="dropdown-menu">
                 <li>
-                  <a class="dropdown-item" href="egreso.html">
+                  <a class="dropdown-item" href="egreso.php">
                     <i class="bi bi-person-check"></i> Por Atención
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="egreso.html">
+                  <a class="dropdown-item" href="egreso.php">
                     <i class="bi bi-prescription2"></i> Por Botiquín
                   </a>
                 </li>

@@ -1,7 +1,13 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+session_start();
+/*valida si se ha iniciado la sesion
+*/
+if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
+    session_destroy();
+    header("Location: index.php");
+    exit;
 }
+
 ?>
 
 <!DOCTYPE html>
