@@ -43,5 +43,22 @@ function obtenerUsuarios($con) {
     $stmt->close();
     return $usuarios;
 }
+function obtenerRoles($con){
+    $stmt =$con->prepare("SELECT * FROM rol_usuario");
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        $stmt->close();
+        return null;
+    }
 
+    $roles = [];
+    while ($fila = $result->fetch_assoc()) {
+        $roles[] = $fila;
+    }
+
+    $stmt->close();
+    return $roles;
+}
 ?>

@@ -119,6 +119,10 @@ function eliminar_usuario($conexion, $id_usuario) {
   </div>
 </div>
 
+
+
+
+
 <!-- Modal para agregar usuario -->
 <div class="modal fade" id="modalAgregarUsuario" tabindex="-1" aria-labelledby="modalAgregarUsuarioLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -129,13 +133,24 @@ function eliminar_usuario($conexion, $id_usuario) {
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label for="nuevoRol" class="form-label">Rol</label>
-          <select class="form-select" id="nuevoRol" name="nuevoRol" required>
-            <option value="" disabled selected>Seleccione un rol</option>
-            <option value="1">Administrador</option>
-            <option value="2">Doctora</option>
-            <option value="3">Enfermera</option>
-          </select>
+      <label for="nuevoRol" class="form-label">Rol</label>
+      <select class="form-select" id="nuevoRol" name="nuevoRol" required>
+        <?php
+          require_once "config/conexion.php";
+          require_once "includes/usuario_model.php";
+
+          $con = new Conexion();
+          $con = $con->connect(); 
+          $roles = obtenerRoles($con);
+              if ($roles) {
+                  foreach ($roles as $rol) {
+                      echo "<option>" . htmlspecialchars($rol['NOMBRE_ROL']) . "</option>";
+                  }
+              } else {
+                  echo "<postion > No  hay roles disponibles</option>";
+              }
+          ?>
+      </select>
         </div>
         <div class="mb-3">
           <label for="nuevoUsuario" class="form-label">Usuario</label>
