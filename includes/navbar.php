@@ -15,7 +15,7 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="inicioDropdown">
             <li>
-              <a class="dropdown-item" href="includes/logout.php">
+              <a class="dropdown-item" href="logout.php">
                 <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
               </a>
             </li>
@@ -92,7 +92,7 @@
               <a class="dropdown-item" href="#"><i class="bi bi-hourglass-split"></i> Productos por Caducar</a>
             </li>
             <li>
-              <a class="dropdown-item" href="#"><i class="bi bi-list-ul"></i> General de productos</a>
+              <a class="dropdown-item" href="./general_prod.php"><i class="bi bi-list-ul"></i> General de productos</a>
             </li>
           </ul>
         </li>

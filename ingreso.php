@@ -1,8 +1,8 @@
 <?php
 //valida sesion
-  session_start();
+session_start();
 
-if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
+if (!isset($_SESSION['usuario']) && !isset($_SESSION['bodega'])) {
     session_destroy();
     header("Location: index.php");
     exit;
@@ -23,7 +23,6 @@ if ($res_prod) {
 $mensaje = "";
 
 // Procesar ingreso de lotes
-// Procesar ingreso de lotes
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productos_lote = $_POST['productoLote'] ?? [];
     $nombres_lote = $_POST['nombreLote'] ?? [];
@@ -32,43 +31,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cantidades = $_POST['cantidad'] ?? [];
     $total = count($productos_lote);
     $ok = true;
+    $erroresValidacion = []; // Array para almacenar mensajes de error
 
     if ($total > 0) {
-        $stmt = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING) VALUES (?, ?, ?, ?, ?)");
-        $fecha_ing = date('Y-m-d'); // Fecha de ingreso actual
+        // Iniciar transacción para asegurar atomicidad
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING) VALUES (?, ?, ?, ?, ?)");
+            $fecha_ing = date('Y-m-d'); // Fecha de ingreso actual del sistema
+            $fechaIngresoSistemaDT = new DateTime($fecha_ing); // Objeto DateTime para comparar
 
-        for ($i = 0; $i < $total; $i++) {
-            $id_producto = $productos_lote[$i];
-            $num_lote = $nombres_lote[$i];
-            $fech_fabri = $fechas_fabri[$i] . "-01";
-            $fech_venc = $fechas_venc[$i] . "-01";
-            $cantidad_ingresada = (int)$cantidades[$i];
+            for ($i = 0; $i < $total; $i++) {
+                $id_producto = $productos_lote[$i];
+                $num_lote = $nombres_lote[$i];
+                $fech_fabri_str = $fechas_fabri[$i] . "-01"; // Convertir YYYY-MM a YYYY-MM-DD
+                $fech_venc_str = $fechas_venc[$i] . "-01";   // Convertir YYYY-MM a YYYY-MM-DD
+                $cantidad_ingresada = (int)$cantidades[$i];
 
-            // Insertar lote
-            $stmt->bind_param("sisss", $num_lote, $id_producto, $fech_venc, $fech_fabri, $fecha_ing);
-            if (!$stmt->execute()) {
-                $ok = false;
-                break;
+                // Convertir fechas a objetos DateTime para una mejor manipulación y comparación
+                $fechaElaboracionDT = new DateTime($fech_fabri_str);
+                $fechaVencimientoDT = new DateTime($fech_venc_str);
+                $fechaActualDT = new DateTime();
+                // Ajustar la fecha actual a solo año y mes para la comparación de elaboración vs actual si es necesario,
+                // o usar directamente la fecha completa si se considera que solo el mes cuenta para la validación.
+                // Para consistencia con el JS, ajustamos al primer día del mes actual.
+                $fechaActualDT->setTime(0, 0, 0);
+                $fechaActualDT->setDate($fechaActualDT->format('Y'), $fechaActualDT->format('m'), 1);
+
+                // --- Validaciones en el servidor ---
+                // Validación 1: Fecha de elaboración no debe ser mayor a la fecha actual
+                if ($fechaElaboracionDT > $fechaActualDT) {
+                    throw new Exception("El lote '{$num_lote}': La fecha de elaboración ({$fech_fabri_str}) no puede ser posterior a la fecha actual.");
+                }
+
+                // Validación 2: Fecha de vencimiento no debe ser menor a la fecha de elaboración
+                if ($fechaVencimientoDT < $fechaElaboracionDT) {
+                    throw new Exception("El lote '{$num_lote}': La fecha de caducidad ({$fech_venc_str}) no puede ser anterior a la fecha de elaboración ({$fech_fabri_str}).");
+                }
+
+                // Validación 3: Fecha de vencimiento no debe ser menor a la fecha de ingreso al sistema
+                // Aquí usamos $fechaIngresoSistemaDT que es la fecha exacta del día en que se procesa el formulario.
+                if ($fechaVencimientoDT < $fechaIngresoSistemaDT) {
+                    throw new Exception("El lote '{$num_lote}': La fecha de caducidad ({$fech_venc_str}) no puede ser anterior a la fecha de ingreso al sistema ({$fecha_ing}).");
+                }
+
+                // Si todas las validaciones pasan, procede con la inserción y actualización
+                $stmt->bind_param("sisss", $num_lote, $id_producto, $fech_venc_str, $fech_fabri_str, $fecha_ing);
+                if (!$stmt->execute()) {
+                    throw new Exception("Error al insertar el lote '{$num_lote}' en la base de datos: " . $stmt->error);
+                }
+
+                // Actualizar stock del producto
+                $res_stock = $conn->query("SELECT stock_act_prod FROM producto WHERE id_prooducto = $id_producto");
+                if ($res_stock && $res_stock->num_rows > 0) {
+                    $row = $res_stock->fetch_assoc();
+                    $nuevo_stock = (int)$row['stock_act_prod'] + $cantidad_ingresada;
+                    if (!$conn->query("UPDATE producto SET stock_act_prod = $nuevo_stock WHERE id_prooducto = $id_producto")) {
+                        throw new Exception("Error al actualizar el stock para el producto {$id_producto} del lote '{$num_lote}': " . $conn->error);
+                    }
+                } else {
+                    throw new Exception("Producto {$id_producto} no encontrado o stock no pudo ser recuperado para el lote '{$num_lote}'.");
+                }
             }
 
-            // Actualizar stock del producto
-            $res_stock = $conn->query("SELECT stock_act_prod FROM producto WHERE id_prooducto = $id_producto");
-            if ($res_stock && $res_stock->num_rows > 0) {
-                $row = $res_stock->fetch_assoc();
-                $nuevo_stock = (int)$row['stock_act_prod'] + $cantidad_ingresada;
-                $conn->query("UPDATE producto SET stock_act_prod = $nuevo_stock WHERE id_prooducto = $id_producto");
-            } else {
-                $ok = false;
-                break;
-            }
-        }
-
-        $stmt->close();
-
-        if ($ok) {
+            $stmt->close();
+            $conn->commit(); // Confirmar todos los cambios si todo fue exitoso
             $mensaje = '<div class="alert alert-success text-center">Lotes ingresados correctamente y stock actualizado.</div>';
-        } else {
-            $mensaje = '<div class="alert alert-danger text-center">Error al ingresar los lotes o actualizar el stock.</div>';
+
+        } catch (Exception $e) {
+            $conn->rollback(); // Revertir todos los cambios si hubo algún error
+            $mensaje = '<div class="alert alert-danger text-center"><strong>Error al procesar los lotes:</strong> ' . htmlspecialchars($e->getMessage()) . '</div>';
+            $ok = false; // Asegurar que $ok sea false
         }
     } else {
         $mensaje = '<div class="alert alert-warning text-center">No hay lotes para ingresar.</div>';
@@ -117,8 +150,7 @@ $conn->close();
                   </tr>
                 </thead>
                 <tbody id="tablaLotes">
-                  <!-- Los lotes se cargarán aquí dinámicamente -->
-                </tbody>
+                  </tbody>
               </table>
             </div>
           </div>
@@ -131,7 +163,6 @@ $conn->close();
       </form>
     </div>
 
-    <!-- Modal para agregar lote -->
     <div class="modal fade" id="modalAgregarLote" tabindex="-1" aria-labelledby="modalAgregarLoteLabel" aria-hidden="true">
       <div class="modal-dialog">
         <form class="modal-content" id="formAgregarLote" autocomplete="off" onsubmit="agregarLote(event)">
@@ -217,16 +248,53 @@ $conn->close();
         const producto = productoSel.value;
         const producto_nombre = productoSel.options[productoSel.selectedIndex].text;
         const nombre = document.getElementById("nombreLote").value.trim();
-        const elaboracion = document.getElementById("fechaElaboracion").value;
-        const caducidad = document.getElementById("fechaCaducidad").value;
+        const elaboracion = document.getElementById("fechaElaboracion").value; // Formato YYYY-MM
+        const caducidad = document.getElementById("fechaCaducidad").value; // Formato YYYY-MM
         const cantidad = document.getElementById("cantidad").value;
-        if (producto && nombre && elaboracion && caducidad) {
-          lotes.push({ producto, producto_nombre, nombre, elaboracion, caducidad, cantidad });
-          renderLotes();
-          document.getElementById("formAgregarLote").reset();
-          var modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarLote"));
-          modal.hide();
+
+        // Convertir a objetos Date para comparaciones
+        const fechaElaboracion = new Date(elaboracion + "-01"); // Añadir -01 para un día válido
+        const fechaCaducidad = new Date(caducidad + "-01"); // Añadir -01 para un día válido
+        const fechaActual = new Date();
+        // Ajustar fechaActual a YYYY-MM-01 para comparar solo año y mes
+        fechaActual.setHours(0, 0, 0, 0);
+        fechaActual.setDate(1); // Establecer el día 1 para evitar problemas con fin de mes
+
+        // Validaciones
+        if (!producto || !nombre || !elaboracion || !caducidad || !cantidad) {
+          alert("Por favor, complete todos los campos.");
+          return; // Detener la ejecución si hay campos vacíos
         }
+
+        // Validación 1: Fecha de elaboración no debe ser mayor a la fecha actual
+        if (fechaElaboracion > fechaActual) {
+          alert(
+            "La fecha de elaboración no puede ser posterior a la fecha actual."
+          );
+          return;
+        }
+
+        // Validación 2: Fecha de vencimiento no debe ser menor a la fecha de elaboración
+        if (fechaCaducidad < fechaElaboracion) {
+          alert(
+            "La fecha de caducidad no puede ser anterior a la fecha de elaboración."
+          );
+          return;
+        }
+
+        // Validación 3: Fecha de vencimiento no debe ser menor a la fecha de ingreso al sistema
+        // En el lado del cliente, la "fecha de ingreso al sistema" es esencialmente la fecha actual.
+        if (fechaCaducidad < fechaActual) {
+          alert("La fecha de caducidad no puede ser anterior a la fecha actual.");
+          return;
+        }
+
+        // Si todas las validaciones pasan, agregar el lote
+        lotes.push({ producto, producto_nombre, nombre, elaboracion, caducidad, cantidad });
+        renderLotes();
+        document.getElementById("formAgregarLote").reset();
+        var modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarLote"));
+        modal.hide();
       }
 
       function eliminarLote(idx) {
@@ -249,5 +317,3 @@ $conn->close();
     </script>
   </body>
 </html>
-
-
