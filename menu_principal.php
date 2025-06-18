@@ -1,13 +1,12 @@
 <?php
-session_start();
-/*valida si se ha iniciado la sesion
-*/
+
+  session_start();
+
 if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
     session_destroy();
     header("Location: index.php");
     exit;
 }
-
 ?>
 
 <!DOCTYPE html>

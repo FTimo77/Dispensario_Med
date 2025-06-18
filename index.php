@@ -109,7 +109,7 @@ $bodegas = obtenerBodegasActivas($conn);
                     </div>
                 <?php endif; ?>
 
-            </form>
+            </form> 
         </div>
     </div>
 

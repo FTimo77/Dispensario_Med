@@ -14,8 +14,21 @@ function validarUsuario($conn, $usuario, $clave) {
     $stmt->close();
     return null;
 }
-function obtenerUsuarios($con) {
-    $stmt = $con->prepare("
+function obtenerUsuarios($con, $traerInactivos=false) {
+    if($traerInactivos){
+   $stmt = $con->prepare("
+        SELECT 
+            u.ID_USUARIO, 
+            u.NOMBRE_USUARIO, 
+            u.PASS_USUARIO, 
+            u.ESTADO_USUARIO,
+            r.NOMBRE_ROL,
+            u.COD_ROL
+        FROM usuario AS u
+        INNER JOIN rol_usuario AS r ON u.COD_ROL = r.COD_ROL
+    ");
+    }else{
+           $stmt = $con->prepare("
         SELECT 
             u.ID_USUARIO, 
             u.NOMBRE_USUARIO, 
@@ -26,6 +39,7 @@ function obtenerUsuarios($con) {
         INNER JOIN rol_usuario AS r ON u.COD_ROL = r.COD_ROL
         WHERE u.ESTADO_USUARIO = 1
     ");
+    }
     
     $stmt->execute();
     $result = $stmt->get_result();
