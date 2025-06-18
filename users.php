@@ -72,7 +72,7 @@ function editarUsuario($conexion, $id_usuario, $cod_rol, $nombre_usuario, $pass_
 }
 
 function eliminar_usuario($conexion, $id_usuario) {
-    $stmt = $conexion->prepare("DELETE FROM usuario WHERE ID_USUARIO = ?");
+    $stmt = $conexion->prepare("UPDATE usuario SET  ESTADO_USUARIO = '0' WHERE ID_USUARIO = ?");
     $stmt->bind_param("i", $id_usuario);
     return $stmt->execute();
 }

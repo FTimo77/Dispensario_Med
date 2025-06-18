@@ -15,7 +15,7 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="inicioDropdown">
             <li>
-              <a class="dropdown-item" href="logout.php">
+              <a class="dropdown-item" href="includes/logout.php">
                 <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
               </a>
             </li>
@@ -33,6 +33,10 @@
             </li>
             <li>
               <a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a>
+            </li>
+            </li>
+            <li>
+              <a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a>
             </li>
             <li>
               <hr class="dropdown-divider" />

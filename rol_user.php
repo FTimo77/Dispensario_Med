@@ -1,5 +1,5 @@
 <?php
-
+//falta configurar
     session_start();
 
  if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
@@ -8,7 +8,7 @@
      exit;
 }
 require_once "./config/conexion.php";
-require_once "includes/usuario_model.php";
+require_once "./includes/usuario_model.php";
 
 
 
@@ -71,10 +71,11 @@ function eliminar_usuario($conexion, $id_usuario) {
 <?php include 'includes/navbar.php'; ?>
 
   
+<div class="container py-5">
 
   
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0 px-3 py-2 rounded" style="background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">Rol</h2>
+    <h2 class="mb-0 px-3 py-2 rounded" style="background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">En desarrollo</h2>
     <button class="btn btn-primary" onclick="abrirModalRol()">
       <i class="bi bi-person-plus"></i> Agregar Rol 
     </button>
@@ -121,7 +122,7 @@ function eliminar_usuario($conexion, $id_usuario) {
     </div>
   </div>
 </div>
-
+          </div>
 
 
 
