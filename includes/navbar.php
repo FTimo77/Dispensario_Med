@@ -74,7 +74,7 @@
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="egreso.php">
+                  <a class="dropdown-item" href="egreso_botiquin.php">
                     <i class="bi bi-prescription2"></i> Por Botiquín
                   </a>
                 </li>

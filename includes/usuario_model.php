@@ -8,7 +8,12 @@ function validarUsuario($conn, $usuario, $clave) {
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
         $stmt->close();
-        return $user["COD_ROL"]; // O cualquier otro campo que necesites
+        // *** CAMBIO AQUÍ ***
+        // Devuelve un array con el rol y el ID del usuario
+        return [
+            'rol' => $user["COD_ROL"], 
+            'id' => $user["ID_USUARIO"]
+        ];
     }
 
     $stmt->close();

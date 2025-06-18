@@ -24,11 +24,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     } else {
         $conexion = new Conexion();
         $conn = $conexion->connect();
-        $rol_usuario =validarUsuario($conn, $usuario, $clave);
-        if ($rol_usuario) {
+
+        // NOTA: La función validarUsuario() debe ser modificada para que devuelva un array con el rol y el ID.
+        // Ejemplo de retorno: ['rol' => 'admin', 'id' => 1]
+        $datos_usuario = validarUsuario($conn, $usuario, $clave);
+
+        if ($datos_usuario) {
             $_SESSION['usuario'] = $usuario;
             $_SESSION['bodega'] = $bodega;
-            $_SESSION['rol'] = $rol_usuario;
+            $_SESSION['rol'] = $datos_usuario['rol'];
+            $_SESSION['id_usuario'] = $datos_usuario['id']; // <-- ID del usuario agregado a la sesión
             header("Location: menu_principal.php");
             mysqli_close($conn);
             exit;
@@ -44,8 +49,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
 }
 // Si el usuario ya está logueado, redirigir al menú principal
 //if (isset($_SESSION['usuario']) && isset($_SESSION['bodega'])) {
-  //  header("Location: menu_principal.html");
-    //exit;
+//  header("Location: menu_principal.html");
+//exit;
 //}
 
 // Cargar bodegas para el select (solo una vez)
@@ -109,7 +114,7 @@ $bodegas = obtenerBodegasActivas($conn);
                     </div>
                 <?php endif; ?>
 
-            </form> 
+            </form>
         </div>
     </div>
 

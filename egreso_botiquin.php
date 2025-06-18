@@ -24,7 +24,7 @@ $mensaje = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productos_egreso = $_POST['productoEgreso'] ?? [];
     $cantidades = $_POST['cantidadEgreso'] ?? [];
-    $paciente = trim($_POST['paciente'] ?? '');
+    $paciente = "Botiquín"; // Valor por defecto para el paciente
     $total = count($productos_egreso);
     $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
 
@@ -112,11 +112,6 @@ $conn->close();
       </div>
       <?php if ($mensaje) echo $mensaje; ?>
       <form method="POST" id="formEgresos">
-        <!-- CAMBIO: Campo para el nombre del paciente -->
-        <div class="mb-3">
-            <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
-            <input type="text" class="form-control" id="paciente" name="paciente" required placeholder="Ingrese el nombre completo del paciente">
-        </div>
 
         <div class="card shadow-sm">
           <div class="card-body">
@@ -178,7 +173,7 @@ $conn->close();
       </div>
     </div>
 
-    <script src="js/navbar-submenu.js"></script>
+   <script src="js/navbar-submenu.js"></script>
     <script src="js/models.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -244,10 +239,6 @@ $conn->close();
         if (egresos.length === 0) {
           alert("Agregue al menos un egreso antes de enviar.");
           e.preventDefault();
-        }
-        if (document.getElementById('paciente').value.trim() === '') {
-            alert('El nombre del paciente es obligatorio.');
-            e.preventDefault();
         }
       });
 
