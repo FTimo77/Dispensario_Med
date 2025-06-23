@@ -45,8 +45,9 @@ $sql_lotes = "
         categoria c ON p.ID_CATEGORIA = c.id_categoria
     WHERE 
         p.estado_prod = 1 
+        AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
     ORDER BY 
-        l.FECHA_ING DESC;
+        l.FECHA_ING DESC
 ";
 
 $res_lotes = $conn->query($sql_lotes); // Esta es la línea 48 (o la que se ajuste después de mis cambios de formato)
