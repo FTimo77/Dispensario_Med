@@ -111,8 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 
 // Cargar productos con su categoría usando el modelo
-$productos = obtenerProductos($conn);
-
+$productos = obtenerProductos($conn,$_SESSION['bodega']);
 $conn->close();
 ?>
 <!DOCTYPE html>

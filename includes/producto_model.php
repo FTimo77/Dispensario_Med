@@ -1,20 +1,38 @@
 <?php
-
-function obtenerProductos($conn)
-{
+function obtenerProductos($conn, $idBodega) {
     $productos = [];
-    $result = $conn->query("SELECT p.id_prooducto, p.NOM_PROD, p.PRESENTACION_PROD, c.nombre_cat 
-                        FROM producto p 
-                        INNER JOIN categoria c ON p.id_categoria = c.id_categoria
-                        WHERE p.estado_prod = 1");
-    if ($result) {
+    
+    // Preparar la consulta con parámetro
+    $stmt = $conn->prepare("SELECT p.id_prooducto, p.NOM_PROD, p.PRESENTACION_PROD, c.nombre_cat 
+                          FROM producto p 
+                          INNER JOIN categoria c ON p.id_categoria = c.id_categoria
+                          WHERE p.estado_prod = 1 AND CODIGO_BODEGA = ?");
+    
+    // Verificar si la preparación fue exitosa
+    if ($stmt) {
+        // Vincular parámetro (asumiendo que CODIGO_BODEGA es entero)
+        $stmt->bind_param("i",  $idBodega);
+        
+        // Ejecutar consulta
+        $stmt->execute();
+        
+        // Obtener resultados
+        $result = $stmt->get_result();
+        
+        // Procesar resultados
         while ($row = $result->fetch_assoc()) {
             $productos[] = $row;
         }
+        
+        // Cerrar statement
+        $stmt->close();
+    } else {
+        // Manejar error en la preparación (opcional)
+        die("Error al preparar la consulta: " . $conn->error);
     }
+    
     return $productos;
 }
-
 function agregarProducto($conn, $nombre, $presentacion, $categoria_id, $codigo_bodega, $stock_minimo)
 {
     $stmt = $conn->prepare("INSERT INTO producto (NOM_PROD, PRESENTACION_PROD, id_categoria, codigo_bodega, STOCK_MIN_PROD, estado_prod) VALUES (?, ?, ?, ?, ?, 1)");
