@@ -112,11 +112,23 @@ $conn->close();
       </div>
       <?php if ($mensaje) echo $mensaje; ?>
       <form method="POST" id="formEgresos">
-        <!-- CAMBIO: Campo para el nombre del paciente -->
-        <div class="mb-3">
+        <!-- Ingreso del Nombr del paciente -->
+         <div class="mb-3">
             <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
-            <input type="text" class="form-control" id="paciente" name="paciente" required placeholder="Ingrese el nombre completo del paciente">
+            <select name="paciente" id="paciente" placeholder="Seleccione un paciente" class="form-select" required>
+              <option value="" disabled selected>Seleccione un paciente</option>
+              <option value="Mario Meza">Mario Meza</option>
+              <option value="Luis Ubillus">Luis Ubillus</option>
+              <option value="Ariana Gonzales">Ariana Gonzales</option>
+              <option value="Timothy Maldonado">Timothy Maldonado</option>
+              <option value="Edison Espinosa">Edison Espinosa</option>
+            </select>
         </div>
+        <!-- CAMBIO: Campo para el nombre del paciente -->
+        <!--<div class="mb-3">
+            <label for="paciente" class="form-label fw-bold">Notivo Egreso</label>
+            <input type="text" class="form-control" id="" name="" placeholder="Ingrese el nombre completo del paciente">
+        </div>-->
 
         <div class="card shadow-sm">
           <div class="card-body">
@@ -170,7 +182,8 @@ $conn->close();
            <div class="mb-3">
             <label for="loteEgreso" class="form-label">Lote del producto</label>
             <select class="form-select" id="loteEgreso" name="loteEgreso" required disabled>
-              <option value="" disabled selected>Primero seleccione un producto</option>
+              <option value="" disabled selected>Seleccione un lote</option>
+              <!-- Las opciones se llenarán dinámicamente con JavaScript -->
             </select>
           </div>
             <div class="mb-3">
@@ -243,8 +256,14 @@ $conn->close();
         const selectLote = document.getElementById("loteEgreso");
 
         // Obtener valores
-        const loteId = selectLote.value; // ID del lote (value del option)
-        const loteNombre = selectLote.options[selectLote.selectedIndex].text; // Texto visible
+        if (!selectLote || !selectLote.value) {
+          alert("Debe seleccionar un lote válido.");
+        return;
+        }
+
+        const loteId = selectLote.value;
+        const loteNombre = selectLote.options[selectLote.selectedIndex].text;
+
 
         console.log("ID Lote seleccionado:", loteId);
         console.log("Texto completo:", loteNombre);
@@ -288,7 +307,7 @@ $conn->close();
 
         if (productoId) {
             try {
-                const response = await fetch(`/dispensario_med/includes/lote_model.php?id_producto=${productoId}`);
+                const response = await fetch(`includes/lote_model.php?id_producto=${productoId}`);
                 const lotes = await response.json();
                 
                 selectLote.innerHTML = ''; // Limpiar opciones
