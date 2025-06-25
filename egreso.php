@@ -24,6 +24,7 @@ $mensaje = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productos_egreso = $_POST['productoEgreso'] ?? [];
     $cantidades = $_POST['cantidadEgreso'] ?? [];
+    $motivo = trim($_POST['motivo'] ?? '');
     $paciente = trim($_POST['paciente'] ?? '');
     $total = count($productos_egreso);
     $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
@@ -36,9 +37,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 1. Crear la transacción en la tabla cabecera
-            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, 'EGRESO')");
+            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, ?, 'EGRESO')");
             $fecha_actual = date('Y-m-d H:i:s');
-            $stmt_cabecera->bind_param("ss", $fecha_actual, $paciente);
+            $stmt_cabecera->bind_param("sss", $fecha_actual, $motivo, $paciente);
             if (!$stmt_cabecera->execute()) {
                 throw new Exception("Error al crear la cabecera de la transacción: " . $stmt_cabecera->error);
             }
@@ -125,10 +126,10 @@ $conn->close();
             </select>
         </div>
         <!-- CAMBIO: Campo para el nombre del paciente -->
-        <!--<div class="mb-3">
-            <label for="paciente" class="form-label fw-bold">Notivo Egreso</label>
-            <input type="text" class="form-control" id="" name="" placeholder="Ingrese el nombre completo del paciente">
-        </div>-->
+        <div class="mb-3">
+            <label for="motivo" class="form-label fw-bold">Notivo Egreso</label>
+            <input type="text" class="form-control" id="motivo" name="motivo" placeholder="Ingrese el nombre completo del paciente">
+        </div>
 
         <div class="card shadow-sm">
           <div class="card-body">
@@ -286,6 +287,10 @@ $conn->close();
         if (egresos.length === 0) {
           alert("Agregue al menos un egreso antes de enviar.");
           e.preventDefault();
+        }
+        if (document.getElementById('motivo').value.trim() === '') {
+            alert('El motivo del egreso es obligatorio.');
+            e.preventDefault();
         }
         if (document.getElementById('paciente').value.trim() === '') {
             alert('El nombre del paciente es obligatorio.');
