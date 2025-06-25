@@ -13,12 +13,19 @@ require_once 'config/conexion.php';
 $productos = [];
 $conexion = new Conexion();
 $conn = $conexion->connect();
-$res_prod = $conn->query("SELECT id_prooducto, NOM_PROD FROM producto WHERE estado_prod = 1");
+
+$codigo_bodega_actual = $_SESSION['bodega'] ?? 0; // Obtener la bodega de la sesión
+$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
+$stmt_prod->bind_param("s", $codigo_bodega_actual); // 'i' porque el código de bodega es un entero
+$stmt_prod->execute();
+$res_prod = $stmt_prod->get_result();
+
 if ($res_prod) {
     while ($row = $res_prod->fetch_assoc()) {
         $productos[] = $row;
     }
 }
+$stmt_prod->close();
 
 $mensaje = "";
 
@@ -41,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 1. Crear la transacción en la tabla cabecera
-            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, 'INGRESO')");
+            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, 'I')");
             $fecha_actual_dt = date('Y-m-d H:i:s');
             // Usamos el campo PACIENTE para la referencia, ya que es un campo de texto genérico
             $stmt_cabecera->bind_param("ss", $fecha_actual_dt, $referencia);
@@ -53,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_cabecera->close();
 
             // Preparar consultas para el bucle
-            $stmt_lote = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING) VALUES (?, ?, ?, ?, ?)");
+            $stmt_lote = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING, CANTIDAD_LOTE) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt_kardex = $conn->prepare("INSERT INTO kardex (ID_PROODUCTO, COD_TRANSAC, ID_USUARIO, CANTIDAD) VALUES (?, ?, ?, ?)");
             $fecha_ing_lote = date('Y-m-d');
 
@@ -72,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // 3. Insertar en la tabla lote
-                $stmt_lote->bind_param("sisss", $num_lote, $id_producto, $fech_venc_str, $fech_fabri_str, $fecha_ing_lote);
+                $stmt_lote->bind_param("sisssi", $num_lote, $id_producto, $fech_venc_str, $fech_fabri_str, $fecha_ing_lote, $cantidad_ingresada);
                 if (!$stmt_lote->execute()) {
                     throw new Exception("Error al insertar el lote '{$num_lote}': " . $stmt_lote->error);
                 }
