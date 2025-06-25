@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt_cabecera->close();
 
             // Preparar consultas para el bucle
-            $stmt_lote = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING) VALUES (?, ?, ?, ?, ?)");
+            $stmt_lote = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING, CANTIDAD_LOTE) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt_kardex = $conn->prepare("INSERT INTO kardex (ID_PROODUCTO, COD_TRANSAC, ID_USUARIO, CANTIDAD) VALUES (?, ?, ?, ?)");
             $fecha_ing_lote = date('Y-m-d');
 
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 // 3. Insertar en la tabla lote
-                $stmt_lote->bind_param("sisss", $num_lote, $id_producto, $fech_venc_str, $fech_fabri_str, $fecha_ing_lote);
+                $stmt_lote->bind_param("sisssi", $num_lote, $id_producto, $fech_venc_str, $fech_fabri_str, $fecha_ing_lote, $cantidad_ingresada);
                 if (!$stmt_lote->execute()) {
                     throw new Exception("Error al insertar el lote '{$num_lote}': " . $stmt_lote->error);
                 }
