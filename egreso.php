@@ -12,7 +12,11 @@ require_once 'config/conexion.php';
 $productos = [];
 $conexion = new Conexion();
 $conn = $conexion->connect();
-$res_prod = $conn->query("SELECT id_prooducto, NOM_PROD, stock_act_prod FROM producto WHERE estado_prod = 1");
+$codigo_bodega_actual = $_SESSION['bodega'] ?? 0; // Obtener la bodega de la sesión
+$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD, stock_act_prod FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
+$stmt_prod->bind_param("s", $codigo_bodega_actual); // 'i' porque el código de bodega es un entero
+$stmt_prod->execute();
+$res_prod = $stmt_prod->get_result();
 if ($res_prod) {
     while ($row = $res_prod->fetch_assoc()) {
         $productos[] = $row;
@@ -26,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cantidades = $_POST['cantidadEgreso'] ?? [];
     $paciente = trim($_POST['paciente'] ?? '');
     $total = count($productos_egreso);
+    $motivo = 'Por atención';
     $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
 
     if ($total > 0 && !empty($paciente)) {
@@ -36,9 +41,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 1. Crear la transacción en la tabla cabecera
-            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, 'EGRESO')");
+            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, ?, 'E')");
             $fecha_actual = date('Y-m-d H:i:s');
-            $stmt_cabecera->bind_param("ss", $fecha_actual, $paciente);
+            $stmt_cabecera->bind_param("sss", $fecha_actual, $motivo, $paciente);
             if (!$stmt_cabecera->execute()) {
                 throw new Exception("Error al crear la cabecera de la transacción: " . $stmt_cabecera->error);
             }
