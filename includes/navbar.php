@@ -90,7 +90,7 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
             <li>
-              <a class="dropdown-item" href="#"><i class="bi bi-exclamation-circle"></i> Existencias Mínimas</a>
+              <a class="dropdown-item" href="existencias_min.php"><i class="bi bi-exclamation-circle"></i> Existencias Mínimas</a>
             </li>
             <li>
               <a class="dropdown-item" href="#"><i class="bi bi-hourglass-split"></i> Productos por Caducar</a>
