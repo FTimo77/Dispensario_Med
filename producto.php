@@ -16,6 +16,8 @@ if (isset($_GET['success'])) {
     $mensaje = "Producto eliminado correctamente.";
   } elseif ($_GET['success'] == 3) {
     $mensaje = "Categoría eliminada correctamente.";
+  } elseif ($_GET['success'] == 4) {
+    $mensaje = "Producto actualizado correctamente.";
   }
 }
 
@@ -74,11 +76,19 @@ if ($result) {
 
 // Procesamiento del formulario
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+  $id_producto_editar = isset($_POST['id_producto_editar']) ? trim($_POST['id_producto_editar']) : '';
   $nombre = trim($_POST['productname']);
   $presentacion = trim($_POST['presentacionproducto']);
+  $medida_cantidad = trim($_POST['medida_cantidad']);
+  $medida_unidad = trim($_POST['medida_unidad']);
   $categoria_id = trim($_POST['categoriaSeleccionada']);
   $nueva_categoria = trim($_POST['nueva_categoria']);
   $stock_minimo = trim($_POST['stockminimo']);
+
+  // Concatenar medida a la presentación si se ingresó
+  if ($medida_cantidad !== '' && $medida_unidad !== '') {
+    $presentacion .= ' - ' . $medida_cantidad . ' ' . $medida_unidad;
+  }
 
   if ($nombre !== "" && $presentacion !== "" && ($categoria_id !== "" || $nueva_categoria !== "")) {
     // Si se ingresó una nueva categoría
@@ -93,16 +103,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt_cat->close();
       }
     }
-    // Insertar producto solo si hay un id de categoría válido
-    if ($categoria_id !== "") {
-      if (agregarProducto($conn, $nombre, $presentacion, $categoria_id, $_SESSION['bodega'], $stock_minimo)) {
-        if ($mensaje == "") {
-          $mensaje = "Producto creado correctamente.";
-        }
-        header("Location: producto.php?success=1");
-        exit;
+    // Si es edición
+    if ($id_producto_editar !== "") {
+      $stmt = $conn->prepare("UPDATE producto SET NOM_PROD=?, PRESENTACION_PROD=?, id_categoria=?, stock_min_prod=? WHERE id_prooducto=?");
+      if (!$stmt) {
+        $mensaje = "Error en la preparación de la consulta: " . $conn->error;
       } else {
-        $mensaje = "Error al crear el producto.";
+        $stmt->bind_param("ssiii", $nombre, $presentacion, $categoria_id, $stock_minimo, $id_producto_editar);
+        if ($stmt->execute()) {
+          header("Location: producto.php?success=4");
+          exit;
+        } else {
+          $mensaje = "Error al actualizar el producto.";
+        }
+        $stmt->close();
+      }
+    } else {
+      // Insertar producto solo si hay un id de categoría válido
+      if ($categoria_id !== "") {
+        if (agregarProducto($conn, $nombre, $presentacion, $categoria_id, $_SESSION['bodega'], $stock_minimo)) {
+          if ($mensaje == "") {
+            $mensaje = "Producto creado correctamente.";
+          }
+          header("Location: producto.php?success=1");
+          exit;
+        } else {
+          $mensaje = "Error al crear el producto.";
+        }
       }
     }
   } else {
@@ -164,9 +191,14 @@ $conn->close();
                   <td><?php echo htmlspecialchars($prod['nombre_cat']); ?></td>
                   <td class="text-end">
                     <!-- Icono Editar -->
-                    <a href="#" class="btn btn-sm btn-outline-primary me-2" title="Editar">
+                    <button type="button" class="btn btn-sm btn-outline-primary me-2 btn-editar-producto" title="Editar"
+                      data-id="<?php echo $prod['id_prooducto']; ?>"
+                      data-nombre="<?php echo htmlspecialchars($prod['NOM_PROD']); ?>"
+                      data-presentacion="<?php echo htmlspecialchars($prod['PRESENTACION_PROD']); ?>"
+                      data-categoria="<?php echo $prod['id_categoria'] ?? ''; ?>"
+                      data-stockmin="<?php echo htmlspecialchars($prod['stock_minimo'] ?? ''); ?>">
                       <i class="bi bi-pencil-square"></i>
-                    </a>
+                    </button>
                     <!-- Icono Eliminar -->
                     <a href="producto.php?eliminar=<?php echo $prod['id_prooducto']; ?>"
                       class="btn btn-sm btn-outline-danger" title="Eliminar"
@@ -189,6 +221,7 @@ $conn->close();
     <div class="modal-dialog">
       <form class="modal-content" id="formularioProducto" method="POST" action=""
         onsubmit="return finalizarFormulario();">
+        <input type="hidden" id="id_producto_editar" name="id_producto_editar" value="">
         <div class="modal-header">
           <h5 class="modal-title" id="modalCrearProductoLabel">Crear Producto</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -204,6 +237,36 @@ $conn->close();
               <label for="presentacionproducto" class="form-label">Presentación del producto</label>
               <input type="text" class="form-control" id="presentacionproducto" name="presentacionproducto"
                 placeholder="Ej. Caja de 6 unidades" required />
+            </div>
+            <div class="col-12 d-flex align-items-end mb-2">
+              <div style="flex:2;">
+                <label for="medida_cantidad" class="form-label">Cantidad de la medida</label>
+                <input type="number" min="0" step="any" class="form-control" id="medida_cantidad" name="medida_cantidad" placeholder="Ej. 500" />
+              </div>
+              <div style="flex:1; margin-left:10px;">
+                <label for="medida_unidad" class="form-label">Unidad</label>
+                <select class="form-select" id="medida_unidad" name="medida_unidad">
+                  <option value="">Unidad</option>
+                  <option value="mg">mg</option>
+                  <option value="g">g</option>
+                  <option value="ml">ml</option>
+                  <option value="L">L</option>
+                  <option value="UI">UI</option>
+                  <option value="mcg">mcg</option>
+                  <option value="tabletas">tabletas</option>
+                  <option value="cápsulas">cápsulas</option>
+                  <option value="ampollas">ampollas</option>
+                  <option value="sobres">sobres</option>
+                  <option value="frascos">frascos</option>
+                  <option value="viales">viales</option>
+                  <option value="dosis">dosis</option>
+                  <option value="gotas">gotas</option>
+                  <option value="parches">parches</option>
+                  <option value="supositorios">supositorios</option>
+                  <option value="spray">spray</option>
+                  <option value="otros">otros</option>
+                </select>
+              </div>
             </div>
             <div class="col-12">
               <label for="categoriaSeleccionada" class="form-label">Categoría</label>
@@ -283,6 +346,46 @@ $conn->close();
   <script src="js/models.js"></script>
   <script src="js/navbar-submenu.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // --- EDICIÓN DE PRODUCTO ---
+    document.querySelectorAll('.btn-editar-producto').forEach(btn => {
+      btn.addEventListener('click', function() {
+        // Rellenar el modal con los datos del producto
+        document.getElementById('id_producto_editar').value = this.dataset.id;
+        document.getElementById('productname').value = this.dataset.nombre;
+        // Separar presentación y medida si existe
+        let presentacion = this.dataset.presentacion;
+        let medidaCantidad = '';
+        let medidaUnidad = '';
+        if (presentacion && presentacion.includes(' - ')) {
+          const partes = presentacion.split(' - ');
+          document.getElementById('presentacionproducto').value = partes[0];
+          if (partes[1]) {
+            const match = partes[1].match(/^(\d+(?:[.,]\d+)?)\s*(\w+)$/);
+            if (match) {
+              medidaCantidad = match[1];
+              medidaUnidad = match[2];
+            }
+          }
+        } else {
+          document.getElementById('presentacionproducto').value = presentacion;
+        }
+        document.getElementById('medida_cantidad').value = medidaCantidad;
+        document.getElementById('medida_unidad').value = medidaUnidad;
+        document.getElementById('categoriaSeleccionada').value = this.dataset.categoria;
+        document.getElementById('stockmin').value = this.dataset.stockmin;
+        document.getElementById('modalCrearProductoLabel').textContent = 'Editar Producto';
+        var modal = new bootstrap.Modal(document.getElementById('modalCrearProducto'));
+        modal.show();
+      });
+    });
+    // Al cerrar el modal, limpiar el formulario y el modo
+    document.getElementById('modalCrearProducto').addEventListener('hidden.bs.modal', function () {
+      document.getElementById('formularioProducto').reset();
+      document.getElementById('id_producto_editar').value = '';
+      document.getElementById('modalCrearProductoLabel').textContent = 'Crear Producto';
+    });
+  </script>
   <div class="wave-container">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"
       style="display:block; width:100vw; height:auto; margin:0; padding:0;">

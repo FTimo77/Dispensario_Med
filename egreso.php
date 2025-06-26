@@ -12,7 +12,11 @@ require_once 'config/conexion.php';
 $productos = [];
 $conexion = new Conexion();
 $conn = $conexion->connect();
-$res_prod = $conn->query("SELECT id_prooducto, NOM_PROD, stock_act_prod FROM producto WHERE estado_prod = 1");
+$codigo_bodega_actual = $_SESSION['bodega'] ?? 0; // Obtener la bodega de la sesión
+$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD, stock_act_prod FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
+$stmt_prod->bind_param("s", $codigo_bodega_actual); // 'i' porque el código de bodega es un entero
+$stmt_prod->execute();
+$res_prod = $stmt_prod->get_result();
 if ($res_prod) {
     while ($row = $res_prod->fetch_assoc()) {
         $productos[] = $row;
@@ -24,11 +28,13 @@ $mensaje = "";
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productos_egreso = $_POST['productoEgreso'] ?? [];
     $cantidades = $_POST['cantidadEgreso'] ?? [];
+    $lotes_egreso = $_POST['loteEgreso'] ?? [];
     $paciente = trim($_POST['paciente'] ?? '');
+    $motivo = trim($_POST['motivo'] ?? '');
     $total = count($productos_egreso);
     $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
 
-    if ($total > 0 && !empty($paciente)) {
+    if ($total > 0 && !empty($paciente) && !empty($motivo)) {
         $conn->begin_transaction();
         try {
             if ($id_usuario_actual === null) {
@@ -36,9 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 1. Crear la transacción en la tabla cabecera
-            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, 'EGRESO')");
+            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, ?, 'E')");
             $fecha_actual = date('Y-m-d H:i:s');
-            $stmt_cabecera->bind_param("ss", $fecha_actual, $paciente);
+            $stmt_cabecera->bind_param("sss", $fecha_actual, $motivo, $paciente);
             if (!$stmt_cabecera->execute()) {
                 throw new Exception("Error al crear la cabecera de la transacción: " . $stmt_cabecera->error);
             }
@@ -49,23 +55,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Preparar las consultas para el bucle
             $stmt_update_stock = $conn->prepare("UPDATE producto SET stock_act_prod = ? WHERE id_prooducto = ?");
             $stmt_insert_kardex = $conn->prepare("INSERT INTO kardex (ID_PROODUCTO, COD_TRANSAC, ID_USUARIO, CANTIDAD) VALUES (?, ?, ?, ?)");
+            $stmt_update_lote = $conn->prepare("UPDATE lote SET CANTIDAD_LOTE = ? WHERE num_lote = ?");
+            $stmt_check_lote = $conn->prepare("SELECT CANTIDAD_LOTE FROM lote WHERE num_lote = ? FOR UPDATE");
 
             for ($i = 0; $i < $total; $i++) {
                 $id_producto = (int)$productos_egreso[$i];
                 $cantidad_egresada = (int)$cantidades[$i];
+                $num_lote = $lotes_egreso[$i]; // Tratar como string
 
+                // Verificar stock del lote con consulta preparada
+                $stmt_check_lote->bind_param("s", $num_lote);
+                $stmt_check_lote->execute();
+                $lote_res = $stmt_check_lote->get_result();
+                
+                if ($lote_res->num_rows === 0) {
+                    throw new Exception("Lote '{$num_lote}' no encontrado.");
+                }
+                $cantidad_lote_anterior = (int)$lote_res->fetch_assoc()['CANTIDAD_LOTE'];
+
+                if ($cantidad_lote_anterior < $cantidad_egresada) {
+                    throw new Exception("Stock insuficiente en el lote '{$num_lote}'. Disponibles: {$cantidad_lote_anterior}");
+                }
+                
+                // Actualizar stock del lote
+                $nueva_cantidad_lote = $cantidad_lote_anterior - $cantidad_egresada;
+                $stmt_update_lote->bind_param("is", $nueva_cantidad_lote, $num_lote);
+                if (!$stmt_update_lote->execute()) {
+                    throw new Exception("Error al actualizar stock del lote '{$num_lote}': " . $stmt_update_lote->error);
+                }
+
+                // Verificar stock del producto
                 $stock_res = $conn->query("SELECT stock_act_prod FROM producto WHERE id_prooducto = $id_producto FOR UPDATE");
                 if (!$stock_res || $stock_res->num_rows === 0) throw new Exception("Producto no encontrado.");
 
                 $stock_anterior = (int)$stock_res->fetch_assoc()['stock_act_prod'];
                 if ($stock_anterior < $cantidad_egresada) throw new Exception("Stock insuficiente para el producto.");
 
-                // Actualizar stock
+                // Actualizar stock del producto
                 $stock_nuevo = $stock_anterior - $cantidad_egresada;
                 $stmt_update_stock->bind_param("ii", $stock_nuevo, $id_producto);
                 if (!$stmt_update_stock->execute()) throw new Exception("Error al actualizar stock: " . $stmt_update_stock->error);
 
-                // 3. Registrar en Kardex usando el ID numérico de la cabecera
+                // Registrar en Kardex
                 $stmt_insert_kardex->bind_param("iiii", $id_producto, $cod_transac_id, $id_usuario_actual, $cantidad_egresada);
                 if (!$stmt_insert_kardex->execute()) {
                     throw new Exception("Error al registrar en kardex: " . $stmt_insert_kardex->error);
@@ -74,6 +105,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $stmt_update_stock->close();
             $stmt_insert_kardex->close();
+            $stmt_update_lote->close();
+            $stmt_check_lote->close();
             $conn->commit();
             $mensaje = '<div class="alert alert-success text-center">Egreso procesado correctamente.</div>';
 
@@ -82,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensaje = '<div class="alert alert-danger text-center"><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     } else {
-        $mensaje = '<div class="alert alert-warning text-center">Debe agregar productos y especificar el nombre del paciente.</div>';
+        $mensaje = '<div class="alert alert-warning text-center">Debe agregar productos, especificar el nombre del paciente y el motivo.</div>';
     }
 }
 $conn->close();
@@ -112,7 +145,7 @@ $conn->close();
       </div>
       <?php if ($mensaje) echo $mensaje; ?>
       <form method="POST" id="formEgresos">
-        <!-- Ingreso del Nombr del paciente -->
+        <!-- Ingreso del Nombre del paciente -->
          <div class="mb-3">
             <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
             <select name="paciente" id="paciente" placeholder="Seleccione un paciente" class="form-select" required>
@@ -124,11 +157,11 @@ $conn->close();
               <option value="Edison Espinosa">Edison Espinosa</option>
             </select>
         </div>
-        <!-- CAMBIO: Campo para el nombre del paciente -->
-        <!--<div class="mb-3">
-            <label for="paciente" class="form-label fw-bold">Notivo Egreso</label>
-            <input type="text" class="form-control" id="" name="" placeholder="Ingrese el nombre completo del paciente">
-        </div>-->
+        <!-- Campo para el motivo del egreso -->
+        <div class="mb-3">
+            <label for="motivo" class="form-label fw-bold">Motivo del Egreso</label>
+            <input type="text" class="form-control" id="motivo" name="motivo" placeholder="Ingrese el motivo del egreso" required>
+        </div>
 
         <div class="card shadow-sm">
           <div class="card-body">
@@ -240,9 +273,6 @@ $conn->close();
         const stockDisponible = parseInt(productoSelect.options[productoSelect.selectedIndex].getAttribute('data-stock'), 10);
         const cantidad = parseInt(cantidadInput.value, 10);
 
-        
-
-
         if (!productoId || !cantidad) {
           alert("Por favor, seleccione un producto y especifique la cantidad.");
           return;
@@ -258,17 +288,16 @@ $conn->close();
         // Obtener valores
         if (!selectLote || !selectLote.value) {
           alert("Debe seleccionar un lote válido.");
-        return;
+          return;
         }
 
-        const loteId = selectLote.value;
+        const loteId = selectLote.value; // Este es el NUM_LOTE
         const loteNombre = selectLote.options[selectLote.selectedIndex].text;
 
-
-        console.log("ID Lote seleccionado:", loteId);
+        console.log("Lote seleccionado:", loteId);
         console.log("Texto completo:", loteNombre);
 
-        egresos.push({ productoId, productoNombre, cantidad, loteId,loteNombre });
+        egresos.push({ productoId, productoNombre, cantidad, loteId, loteNombre });
         renderEgresos();
         document.getElementById("formAgregarEgreso").reset();
         var modal = bootstrap.Modal.getInstance(document.getElementById("modalAgregarEgreso"));
@@ -291,58 +320,61 @@ $conn->close();
             alert('El nombre del paciente es obligatorio.');
             e.preventDefault();
         }
+        if (document.getElementById('motivo').value.trim() === '') {
+            alert('El motivo del egreso es obligatorio.');
+            e.preventDefault();
+        }
       });
 
       renderEgresos();
 
       //obtiene lote y lo carga dinamicamente segun el producto seleccionado
      function cargarLote() {
-    document.getElementById("productoEgreso").addEventListener("change", async function() {
-        const productoId = this.value;
-        const selectLote = document.getElementById("loteEgreso");
-        
-        // Resetear el select
-        selectLote.innerHTML = '<option value="" disabled selected>Cargando lotes...</option>';
-        selectLote.disabled = true;
+        document.getElementById("productoEgreso").addEventListener("change", async function() {
+            const productoId = this.value;
+            const selectLote = document.getElementById("loteEgreso");
+            
+            // Resetear el select
+            selectLote.innerHTML = '<option value="" disabled selected>Cargando lotes...</option>';
+            selectLote.disabled = true;
 
-        if (productoId) {
-            try {
-                const response = await fetch(`includes/lote_model.php?id_producto=${productoId}`);
-                const lotes = await response.json();
-                
-                selectLote.innerHTML = ''; // Limpiar opciones
-                
-                if (lotes.length > 0) {
-                    // Agregar opción por defecto
-                    const defaultOption = document.createElement("option");
-                    defaultOption.value = "";
-                    defaultOption.disabled = true;
-                    defaultOption.selected = true;
-                    defaultOption.textContent = "Seleccione un lote";
-                    selectLote.appendChild(defaultOption);
+            if (productoId) {
+                try {
+                    const response = await fetch(`includes/lote_model.php?id_producto=${productoId}`);
+                    const lotes = await response.json();
                     
-                    // Agregar lotes
-                    lotes.forEach(lote => {
-                        const option = document.createElement("option");
-                        option.value = lote.id_lote;
-                        // Ajusta según los campos de tu respuesta
-                        option.textContent = `${lote.NUM_LOTE} stock (${lote.CANTIDAD_LOTE})`;
-                        option.value=`${lote.NUM_LOTE}`
-                        selectLote.appendChild(option);
-                    });
-                    selectLote.disabled = false;
-                } else {
-                    selectLote.innerHTML = '<option value="" disabled>No hay lotes disponibles</option>';
+                    selectLote.innerHTML = ''; // Limpiar opciones
+                    
+                    if (lotes.length > 0) {
+                        // Agregar opción por defecto
+                        const defaultOption = document.createElement("option");
+                        defaultOption.value = "";
+                        defaultOption.disabled = true;
+                        defaultOption.selected = true;
+                        defaultOption.textContent = "Seleccione un lote";
+                        selectLote.appendChild(defaultOption);
+                        
+                        // Agregar lotes
+                        lotes.forEach(lote => {
+                            const option = document.createElement("option");
+                            option.value = lote.NUM_LOTE; // Usar NUM_LOTE como valor
+                            // Ajusta según los campos de tu respuesta
+                            option.textContent = `${lote.NUM_LOTE} stock (${lote.CANTIDAD_LOTE})`;
+                            selectLote.appendChild(option);
+                        });
+                        selectLote.disabled = false;
+                    } else {
+                        selectLote.innerHTML = '<option value="" disabled>No hay lotes disponibles</option>';
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    selectLote.innerHTML = '<option value="" disabled>Error al cargar lotes</option>';
                 }
-            } catch (error) {
-                console.error("Error:", error);
-                selectLote.innerHTML = '<option value="" disabled>Error al cargar lotes</option>';
+            } else {
+                selectLote.innerHTML = '<option value="" disabled selected>Primero seleccione un producto</option>';
             }
-        } else {
-            selectLote.innerHTML = '<option value="" disabled selected>Primero seleccione un producto</option>';
-        }
-    });
-}
+        });
+    }
 
 // Inicializar
 cargarLote();
