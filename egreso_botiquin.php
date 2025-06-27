@@ -29,12 +29,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $productos_egreso = $_POST['productoEgreso'] ?? [];
     $cantidades = $_POST['cantidadEgreso'] ?? [];
     $lotes_egreso = $_POST['loteEgreso'] ?? [];
-    $paciente = trim($_POST['paciente'] ?? '');
+    $paciente = null; // <-- Paciente siempre null
     $total = count($productos_egreso);
     $motivo = 'Botiquín';
     $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
 
-    if ($total > 0 && !empty($paciente)) {
+    if ($total > 0) { // Ya no se valida paciente
         $conn->begin_transaction();
         try {
             if ($id_usuario_actual === null) {
@@ -145,24 +145,6 @@ $conn->close();
       </div>
       <?php if ($mensaje) echo $mensaje; ?>
       <form method="POST" id="formEgresos">
-        <!-- Ingreso del Nombr del paciente -->
-         <div class="mb-3">
-            <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
-            <select name="paciente" id="paciente" placeholder="Seleccione un paciente" class="form-select" required>
-              <option value="" disabled selected>Seleccione un paciente</option>
-              <option value="Mario Meza">Mario Meza</option>
-              <option value="Luis Ubillus">Luis Ubillus</option>
-              <option value="Ariana Gonzales">Ariana Gonzales</option>
-              <option value="Timothy Maldonado">Timothy Maldonado</option>
-              <option value="Edison Espinosa">Edison Espinosa</option>
-            </select>
-        </div>
-        <!-- CAMBIO: Campo para el nombre del paciente -->
-        <!--<div class="mb-3">
-            <label for="paciente" class="form-label fw-bold">Notivo Egreso</label>
-            <input type="text" class="form-control" id="" name="" placeholder="Ingrese el nombre completo del paciente">
-        </div>-->
-
         <div class="card shadow-sm">
           <div class="card-body">
             <div class="table-responsive">
@@ -315,10 +297,6 @@ $conn->close();
         if (egresos.length === 0) {
           alert("Agregue al menos un egreso antes de enviar.");
           e.preventDefault();
-        }
-        if (document.getElementById('paciente').value.trim() === '') {
-            alert('El nombre del paciente es obligatorio.');
-            e.preventDefault();
         }
       });
 

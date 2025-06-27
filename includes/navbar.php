@@ -110,10 +110,10 @@
             if (isset($_SESSION['usuario'])) {
               echo htmlspecialchars($_SESSION['usuario']);
               if (!empty($_SESSION['bodega'])) {
-                echo ' | <i class="bi bi-building"></i> ' . htmlspecialchars($_SESSION['bodega']);
+                echo ' | <i class="bi bi-building"></i> ' . htmlspecialchars($_SESSION['nombre_bodega']);
               }
               if (!empty($_SESSION['rol'])) {
-                echo ' | <i class="bi bi-person-badge"></i> ' . htmlspecialchars($_SESSION['rol']);
+                echo ' | <i class="bi bi-person-badge"></i> ' . htmlspecialchars($_SESSION['nombre_rol']);
               }
             } else {
               echo "No autenticado";
