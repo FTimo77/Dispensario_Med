@@ -111,7 +111,7 @@ $stmt->close();
                             <th>Stock prod</th>
                             <th>Lote</th>
                             <th>Vencimiento</th>
-                            <th>Caduca en</th>
+                            <th>Caduca en (dias)</th>
                         </tr>
                     </thead>
                     <tbody>
