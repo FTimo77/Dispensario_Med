@@ -40,24 +40,23 @@ $conexion = new Conexion();
 $conexion = $conexion->connect();
 
 // Consulta SQL corregida
-$sql = "
-    SELECT 
-        C.NOMBRE_CAT,
-        P.NOM_PROD,
-        P.STOCK_ACT_PROD,
-        L.NUM_LOTE,
-        L.FECH_VENC,
-        DATEDIFF(L.FECH_VENC, NOW()) AS 'DIAS' 
-    FROM 
-        lote L
-    JOIN 
-        producto P ON L.ID_PROODUCTO = P.ID_PROODUCTO 
-    JOIN 
-        categoria C ON P.ID_CATEGORIA = C.ID_CATEGORIA 
-    WHERE 
-        DATEDIFF(L.FECH_VENC, NOW()) < 91 
-        AND P.ESTADO_PROD = 1 
-        AND P.CODIGO_BODEGA = ?
+$sql = "SELECT 
+    C.NOMBRE_CAT,
+    P.NOM_PROD,
+    P.STOCK_ACT_PROD,
+    L.NUM_LOTE,
+    L.FECH_VENC,
+    TIMESTAMPDIFF(MONTH, NOW(), L.FECH_VENC) AS 'MESES' 
+FROM 
+    lote L
+JOIN 
+    producto P ON L.ID_PROODUCTO = P.ID_PROODUCTO 
+JOIN 
+    categoria C ON P.ID_CATEGORIA = C.ID_CATEGORIA 
+WHERE 
+    TIMESTAMPDIFF(MONTH, NOW(), L.FECH_VENC) < 9 
+    AND P.ESTADO_PROD = 1 
+    AND P.CODIGO_BODEGA = ?
 ";
 
 $stmt = $conexion->prepare($sql);
@@ -111,7 +110,7 @@ $stmt->close();
                             <th>Stock prod</th>
                             <th>Lote</th>
                             <th>Vencimiento</th>
-                            <th>Caduca en (dias)</th>
+                            <th>Caduca en (meses)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -131,15 +130,15 @@ $stmt->close();
                                     <td><?php echo htmlspecialchars($row['FECH_VENC']); ?></td>
                                     <td style="font-weight: bold; 
                                           <?php 
-                                          if ($row['DIAS'] < 30) {
+                                          if ($row['MESES'] < 3) {
                                               echo 'background-color: #ffcccc;'; // Rojo claro
-                                          } elseif ($row['DIAS'] < 60) {
+                                          } elseif ($row['MESES'] < 6) {
                                               echo 'background-color: #fff3cd;'; // Amarillo claro
-                                          } elseif ($row['DIAS'] < 91) {
+                                          } elseif ($row['MESES'] < 9) {
                                               echo 'background-color: #d4edda;'; // Verde claro
                                           }
                                           ?>">
-                                          <?php echo htmlspecialchars($row['DIAS']); ?>
+                                          <?php echo htmlspecialchars($row['MESES']); ?>
                                       </td>
                                   </tr>
                             <?php 
