@@ -30,10 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cantidades = $_POST['cantidadEgreso'] ?? [];
     $lotes_egreso = $_POST['loteEgreso'] ?? [];
     $paciente = trim($_POST['paciente'] ?? '');
+    $motivo = trim($_POST['motivo'] ?? '');
     $total = count($productos_egreso);
     $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
 
-    if ($total > 0 && !empty($paciente)) {
+    if ($total > 0 && !empty($paciente) && !empty($motivo)) {
         $conn->begin_transaction();
         try {
             if ($id_usuario_actual === null) {
@@ -115,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mensaje = '<div class="alert alert-danger text-center"><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</div>';
         }
     } else {
-        $mensaje = '<div class="alert alert-warning text-center">Debe agregar productos y especificar el nombre del paciente.</div>';
+        $mensaje = '<div class="alert alert-warning text-center">Debe agregar productos, especificar el nombre del paciente y el motivo.</div>';
     }
 }
 $conn->close();
@@ -145,7 +146,7 @@ $conn->close();
       </div>
       <?php if ($mensaje) echo $mensaje; ?>
       <form method="POST" id="formEgresos">
-        <!-- Ingreso del Nombr del paciente -->
+        <!-- Ingreso del Nombre del paciente -->
          <div class="mb-3">
             <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
             <select name="paciente" id="paciente" placeholder="Seleccione un paciente" class="form-select" required>
@@ -157,10 +158,10 @@ $conn->close();
               <option value="Edison Espinosa">Edison Espinosa</option>
             </select>
         </div>
-        <!-- CAMBIO: Campo para el nombre del paciente -->
+        <!-- Campo para el motivo del egreso -->
         <div class="mb-3">
-            <label for="motivo" class="form-label fw-bold">Notivo Egreso</label>
-            <input type="text" class="form-control" id="motivo" name="motivo" placeholder="Ingrese el nombre completo del paciente">
+            <label for="motivo" class="form-label fw-bold">Motivo del Egreso</label>
+            <input type="text" class="form-control" id="motivo" name="motivo" placeholder="Ingrese el motivo del egreso" required>
         </div>
 
         <div class="card shadow-sm">
@@ -322,6 +323,10 @@ $conn->close();
         }
         if (document.getElementById('paciente').value.trim() === '') {
             alert('El nombre del paciente es obligatorio.');
+            e.preventDefault();
+        }
+        if (document.getElementById('motivo').value.trim() === '') {
+            alert('El motivo del egreso es obligatorio.');
             e.preventDefault();
         }
       });

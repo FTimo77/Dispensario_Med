@@ -34,6 +34,9 @@
             <li>
               <a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a>
             </li>
+            <li>
+              <a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a>
+            </li>
             </li>
             <li>
               <a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a>
@@ -90,7 +93,7 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
             <li>
-              <a class="dropdown-item" href="#"><i class="bi bi-exclamation-circle"></i> Existencias Mínimas</a>
+              <a class="dropdown-item" href="existencias_min.php"><i class="bi bi-exclamation-circle"></i> Existencias Mínimas</a>
             </li>
             <li>
               <a class="dropdown-item" href="#"><i class="bi bi-hourglass-split"></i> Productos por Caducar</a>
@@ -110,10 +113,10 @@
             if (isset($_SESSION['usuario'])) {
               echo htmlspecialchars($_SESSION['usuario']);
               if (!empty($_SESSION['bodega'])) {
-                echo ' | <i class="bi bi-building"></i> ' . htmlspecialchars($_SESSION['bodega']);
+                echo ' | <i class="bi bi-building"></i> ' . htmlspecialchars($_SESSION['nombre_bodega']);
               }
               if (!empty($_SESSION['rol'])) {
-                echo ' | <i class="bi bi-person-badge"></i> ' . htmlspecialchars($_SESSION['rol']);
+                echo ' | <i class="bi bi-person-badge"></i> ' . htmlspecialchars($_SESSION['nombre_rol']);
               }
             } else {
               echo "No autenticado";

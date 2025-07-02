@@ -30,10 +30,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
         $datos_usuario = validarUsuario($conn, $usuario, $clave);
 
         if ($datos_usuario) {
+            require_once 'includes/obtener_nom_bodega.php';
             $_SESSION['usuario'] = $usuario;
             $_SESSION['bodega'] = $bodega;
             $_SESSION['rol'] = $datos_usuario['rol'];
             $_SESSION['id_usuario'] = $datos_usuario['id']; // <-- ID del usuario agregado a la sesión
+            obtenerNombreBodega($bodega); // Cargar el nombre de la bodega en la sesión
+            obtenerNombreRol($datos_usuario['rol']); // Cargar el nombre del rol en la sesión
             header("Location: menu_principal.php");
             mysqli_close($conn);
             exit;
