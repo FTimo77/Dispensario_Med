@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 1. Crear la transacción en la tabla cabecera
-            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, 'I')");
+            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, TIPO_TRANSAC) VALUES (?, ?, 'I')");
             $fecha_actual_dt = date('Y-m-d H:i:s');
             // Usamos el campo PACIENTE para la referencia, ya que es un campo de texto genérico
             $stmt_cabecera->bind_param("ss", $fecha_actual_dt, $referencia);

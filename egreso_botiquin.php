@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             // 1. Crear la transacción en la tabla cabecera
-            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, PACIENTE, TIPO_TRANSAC) VALUES (?, ?, ?, 'E')");
+            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, id_paciente, TIPO_TRANSAC) VALUES (?, ?, ?, 'E')");
             $fecha_actual = date('Y-m-d H:i:s');
             $stmt_cabecera->bind_param("sss", $fecha_actual, $motivo, $paciente);
             if (!$stmt_cabecera->execute()) {

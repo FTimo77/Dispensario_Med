@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jun 25, 2025 at 04:20 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 02-07-2025 a las 23:52:22
+-- Versión del servidor: 10.4.32-MariaDB
+-- Versión de PHP: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,13 +18,13 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `dispensario`
+-- Base de datos: `dispensario`
 --
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `bodega`
+-- Estructura de tabla para la tabla `bodega`
 --
 
 CREATE TABLE `bodega` (
@@ -34,46 +34,30 @@ CREATE TABLE `bodega` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `bodega`
+-- Volcado de datos para la tabla `bodega`
 --
 
 INSERT INTO `bodega` (`CODIGO_BODEGA`, `DESCRIPCION`, `ESTADO_BODEGA`) VALUES
-(1, 'Quito Norte', '1'),
-(2, 'Quito Sur', '1');
+(1, 'Quito Norte', '1');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cabecera`
+-- Estructura de tabla para la tabla `cabecera`
 --
 
 CREATE TABLE `cabecera` (
   `COD_TRANSAC` int(11) NOT NULL,
   `FECHA_TRANSC` datetime NOT NULL,
   `MOTIVO` char(50) NOT NULL,
-  `PACIENTE` varchar(50) DEFAULT NULL,
-  `TIPO_TRANSAC` char(50) NOT NULL
+  `TIPO_TRANSAC` char(50) NOT NULL,
+  `id_paciente` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `cabecera`
---
-
-INSERT INTO `cabecera` (`COD_TRANSAC`, `FECHA_TRANSC`, `MOTIVO`, `PACIENTE`, `TIPO_TRANSAC`) VALUES
-(1, '2025-06-23 03:52:54', 'Faltate en bodega', '', 'INGRESO'),
-(2, '2025-06-23 04:19:30', 'Stock  casi vacio', '', 'INGRESO'),
-(3, '2025-06-23 04:21:32', 'Paciente Juan Perez, dolor cabeza', '', 'EGRESO'),
-(4, '2025-06-23 21:44:18', 'Ingreso pr falta de  stock', '', 'INGRESO'),
-(5, '2025-06-24 21:46:06', 'asdf', ' ', 'INGRESO'),
-(7, '2025-06-24 21:53:22', 'Prueba', ' ', 'INGRESO'),
-(8, '2025-06-24 22:37:42', 'motivo tempra', NULL, 'INGRESO'),
-(9, '2025-06-25 15:40:44', '', 'Proveedor', 'INGRESO'),
-(10, '2025-06-25 15:43:31', '', 'referencia de nebulizador', 'INGRESO');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `categoria`
+-- Estructura de tabla para la tabla `categoria`
 --
 
 CREATE TABLE `categoria` (
@@ -82,18 +66,10 @@ CREATE TABLE `categoria` (
   `ESTADO_CAT` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `categoria`
---
-
-INSERT INTO `categoria` (`ID_CATEGORIA`, `NOMBRE_CAT`, `ESTADO_CAT`) VALUES
-(1, 'Medicamento', 1),
-(2, 'Insumo', 1);
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `kardex`
+-- Estructura de tabla para la tabla `kardex`
 --
 
 CREATE TABLE `kardex` (
@@ -104,25 +80,10 @@ CREATE TABLE `kardex` (
   `CANTIDAD` decimal(5,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `kardex`
---
-
-INSERT INTO `kardex` (`ID_KARDEX`, `ID_PROODUCTO`, `COD_TRANSAC`, `ID_USUARIO`, `CANTIDAD`) VALUES
-(1, 1, 1, 2, 60),
-(2, 2, 2, 2, 36),
-(3, 2, 3, 2, 10),
-(4, 5, 4, 2, 50),
-(5, 1, 5, 2, 32),
-(6, 2, 7, 2, 60),
-(7, 2, 8, 2, 82),
-(8, 2, 9, 2, 120),
-(9, 4, 10, 2, 3);
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `log`
+-- Estructura de tabla para la tabla `log`
 --
 
 CREATE TABLE `log` (
@@ -135,7 +96,7 @@ CREATE TABLE `log` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `lote`
+-- Estructura de tabla para la tabla `lote`
 --
 
 CREATE TABLE `lote` (
@@ -147,25 +108,24 @@ CREATE TABLE `lote` (
   `CANTIDAD_LOTE` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
+
 --
--- Dumping data for table `lote`
+-- Estructura de tabla para la tabla `pacientes`
 --
 
-INSERT INTO `lote` (`NUM_LOTE`, `ID_PROODUCTO`, `FECH_VENC`, `FECH_FABRI`, `FECHA_ING`, `CANTIDAD_LOTE`) VALUES
-('1234', 1, '2027-10-01', '2024-06-01', '2025-06-24', 0),
-('L002', 1, '2027-07-01', '2024-02-01', '2025-06-23', 0),
-('L450246', 1, '2026-01-01', '2025-05-01', '2025-06-18', 0),
-('Linecciones456', 5, '2028-06-01', '2024-02-01', '2025-06-23', 0),
-('LoteParacetamol', 2, '2027-10-01', '2024-02-01', '2025-06-24', 0),
-('LT001', 2, '2027-06-01', '2024-02-01', '2025-06-24', 0),
-('Ltempra123', 2, '2027-07-01', '2023-11-01', '2025-06-23', 0),
-('NB777', 4, '2027-10-01', '2024-08-01', '2025-06-25', 0),
-('T005', 2, '2027-06-01', '2024-03-01', '2025-06-25', 0);
+CREATE TABLE `pacientes` (
+  `id_paciente` int(11) NOT NULL,
+  `nombre_paciente` varchar(50) DEFAULT NULL,
+  `apellido_paciente` varchar(50) DEFAULT NULL,
+  `empresa` varchar(100) DEFAULT NULL,
+  `est_paciente` varchar(20) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `producto`
+-- Estructura de tabla para la tabla `producto`
 --
 
 CREATE TABLE `producto` (
@@ -179,21 +139,10 @@ CREATE TABLE `producto` (
   `ESTADO_PROD` int(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `producto`
---
-
-INSERT INTO `producto` (`ID_PROODUCTO`, `ID_CATEGORIA`, `CODIGO_BODEGA`, `PRESENTACION_PROD`, `NOM_PROD`, `STOCK_ACT_PROD`, `STOCK_MIN_PROD`, `ESTADO_PROD`) VALUES
-(1, 1, 1, 'Caja 6 unidades', 'Paracetamol', 92, 1, 1),
-(2, 1, 2, '18 unidades', 'Tempra', 288, 1, 1),
-(3, 1, 2, 'Caja 36 unidades', 'Umbral', 0, 20, 1),
-(4, 2, 1, '3 mascarillas', 'Nebulizador', 3, 2, 1),
-(5, 2, 2, 'Caja de 12 unidades', 'Inyecciones 20ml', 50, 12, 1);
-
 -- --------------------------------------------------------
 
 --
--- Table structure for table `rol_usuario`
+-- Estructura de tabla para la tabla `rol_usuario`
 --
 
 CREATE TABLE `rol_usuario` (
@@ -203,17 +152,16 @@ CREATE TABLE `rol_usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `rol_usuario`
+-- Volcado de datos para la tabla `rol_usuario`
 --
 
 INSERT INTO `rol_usuario` (`COD_ROL`, `NOMBRE_ROL`, `ESTADO_ROL`) VALUES
-(1, 'admin', 'A'),
-(2, 'doctor', 'A');
+(1, 'admin', '1');
 
 -- --------------------------------------------------------
 
 --
--- Table structure for table `usuario`
+-- Estructura de tabla para la tabla `usuario`
 --
 
 CREATE TABLE `usuario` (
@@ -225,38 +173,37 @@ CREATE TABLE `usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `usuario`
+-- Volcado de datos para la tabla `usuario`
 --
 
 INSERT INTO `usuario` (`ID_USUARIO`, `COD_ROL`, `NOMBRE_USUARIO`, `PASS_USUARIO`, `ESTADO_USUARIO`) VALUES
-(2, 2, 'aLagla', '1234', '1'),
-(15, 1, 'mMeza', 'aaaa', '1'),
-(16, 1, 'aaaa', 'aaaa', '0');
+(1, 1, 'admin', 'admin', '1');
 
 --
--- Indexes for dumped tables
+-- Índices para tablas volcadas
 --
 
 --
--- Indexes for table `bodega`
+-- Indices de la tabla `bodega`
 --
 ALTER TABLE `bodega`
   ADD PRIMARY KEY (`CODIGO_BODEGA`);
 
 --
--- Indexes for table `cabecera`
+-- Indices de la tabla `cabecera`
 --
 ALTER TABLE `cabecera`
-  ADD PRIMARY KEY (`COD_TRANSAC`);
+  ADD PRIMARY KEY (`COD_TRANSAC`),
+  ADD KEY `fk_paciente` (`id_paciente`);
 
 --
--- Indexes for table `categoria`
+-- Indices de la tabla `categoria`
 --
 ALTER TABLE `categoria`
   ADD PRIMARY KEY (`ID_CATEGORIA`);
 
 --
--- Indexes for table `kardex`
+-- Indices de la tabla `kardex`
 --
 ALTER TABLE `kardex`
   ADD PRIMARY KEY (`ID_KARDEX`),
@@ -265,21 +212,27 @@ ALTER TABLE `kardex`
   ADD KEY `FK_RELATIONSHIP_7` (`ID_USUARIO`);
 
 --
--- Indexes for table `log`
+-- Indices de la tabla `log`
 --
 ALTER TABLE `log`
   ADD PRIMARY KEY (`COD_LOG`),
   ADD KEY `FK_RELATIONSHIP_8` (`ID_USUARIO`);
 
 --
--- Indexes for table `lote`
+-- Indices de la tabla `lote`
 --
 ALTER TABLE `lote`
   ADD PRIMARY KEY (`NUM_LOTE`),
   ADD KEY `FK_RELATIONSHIP_3` (`ID_PROODUCTO`);
 
 --
--- Indexes for table `producto`
+-- Indices de la tabla `pacientes`
+--
+ALTER TABLE `pacientes`
+  ADD PRIMARY KEY (`id_paciente`);
+
+--
+-- Indices de la tabla `producto`
 --
 ALTER TABLE `producto`
   ADD PRIMARY KEY (`ID_PROODUCTO`),
@@ -287,13 +240,13 @@ ALTER TABLE `producto`
   ADD KEY `FK_RELATIONSHIP_5` (`ID_CATEGORIA`);
 
 --
--- Indexes for table `rol_usuario`
+-- Indices de la tabla `rol_usuario`
 --
 ALTER TABLE `rol_usuario`
   ADD PRIMARY KEY (`COD_ROL`);
 
 --
--- Indexes for table `usuario`
+-- Indices de la tabla `usuario`
 --
 ALTER TABLE `usuario`
   ADD PRIMARY KEY (`ID_USUARIO`),
@@ -301,63 +254,75 @@ ALTER TABLE `usuario`
   ADD KEY `FK_RELATIONSHIP_9` (`COD_ROL`);
 
 --
--- AUTO_INCREMENT for dumped tables
+-- AUTO_INCREMENT de las tablas volcadas
 --
 
 --
--- AUTO_INCREMENT for table `bodega`
+-- AUTO_INCREMENT de la tabla `bodega`
 --
 ALTER TABLE `bodega`
-  MODIFY `CODIGO_BODEGA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `CODIGO_BODEGA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `cabecera`
+-- AUTO_INCREMENT de la tabla `cabecera`
 --
 ALTER TABLE `cabecera`
-  MODIFY `COD_TRANSAC` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `COD_TRANSAC` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `categoria`
+-- AUTO_INCREMENT de la tabla `categoria`
 --
 ALTER TABLE `categoria`
-  MODIFY `ID_CATEGORIA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `ID_CATEGORIA` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `kardex`
+-- AUTO_INCREMENT de la tabla `kardex`
 --
 ALTER TABLE `kardex`
-  MODIFY `ID_KARDEX` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `ID_KARDEX` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `log`
+-- AUTO_INCREMENT de la tabla `log`
 --
 ALTER TABLE `log`
   MODIFY `COD_LOG` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `producto`
+-- AUTO_INCREMENT de la tabla `pacientes`
+--
+ALTER TABLE `pacientes`
+  MODIFY `id_paciente` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `ID_PROODUCTO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID_PROODUCTO` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `rol_usuario`
+-- AUTO_INCREMENT de la tabla `rol_usuario`
 --
 ALTER TABLE `rol_usuario`
-  MODIFY `COD_ROL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `COD_ROL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `usuario`
+-- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- Constraints for dumped tables
+-- Restricciones para tablas volcadas
 --
 
 --
--- Constraints for table `kardex`
+-- Filtros para la tabla `cabecera`
+--
+ALTER TABLE `cabecera`
+  ADD CONSTRAINT `fk_paciente` FOREIGN KEY (`id_paciente`) REFERENCES `pacientes` (`id_paciente`);
+
+--
+-- Filtros para la tabla `kardex`
 --
 ALTER TABLE `kardex`
   ADD CONSTRAINT `FK_RELATIONSHIP_2` FOREIGN KEY (`ID_PROODUCTO`) REFERENCES `producto` (`ID_PROODUCTO`),
@@ -365,26 +330,26 @@ ALTER TABLE `kardex`
   ADD CONSTRAINT `FK_RELATIONSHIP_7` FOREIGN KEY (`ID_USUARIO`) REFERENCES `usuario` (`ID_USUARIO`);
 
 --
--- Constraints for table `log`
+-- Filtros para la tabla `log`
 --
 ALTER TABLE `log`
   ADD CONSTRAINT `FK_RELATIONSHIP_8` FOREIGN KEY (`ID_USUARIO`) REFERENCES `usuario` (`ID_USUARIO`);
 
 --
--- Constraints for table `lote`
+-- Filtros para la tabla `lote`
 --
 ALTER TABLE `lote`
   ADD CONSTRAINT `FK_RELATIONSHIP_3` FOREIGN KEY (`ID_PROODUCTO`) REFERENCES `producto` (`ID_PROODUCTO`);
 
 --
--- Constraints for table `producto`
+-- Filtros para la tabla `producto`
 --
 ALTER TABLE `producto`
   ADD CONSTRAINT `FK_RELATIONSHIP_10` FOREIGN KEY (`CODIGO_BODEGA`) REFERENCES `bodega` (`CODIGO_BODEGA`),
   ADD CONSTRAINT `FK_RELATIONSHIP_5` FOREIGN KEY (`ID_CATEGORIA`) REFERENCES `categoria` (`ID_CATEGORIA`);
 
 --
--- Constraints for table `usuario`
+-- Filtros para la tabla `usuario`
 --
 ALTER TABLE `usuario`
   ADD CONSTRAINT `FK_RELATIONSHIP_9` FOREIGN KEY (`COD_ROL`) REFERENCES `rol_usuario` (`COD_ROL`);
