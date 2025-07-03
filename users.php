@@ -194,11 +194,11 @@ function eliminar_usuario($conexion, $id_usuario) {
         </div>
         <div class="mb-3">
           <label for="nuevoUsuario" class="form-label">Usuario</label>
-          <input type="text" class="form-control" id="nuevoUsuario" name="nuevoUsuario" placeholder="Ingrese el nombre de usuario" required />
+          <input type="text" class="form-control" id="nuevoUsuario" name="nuevoUsuario" placeholder="Ingrese el nombre de usuario" required  oninput="soloLetras(this)"/>
         </div>
         <div class="mb-3">
           <label for="nuevoPassword" class="form-label">Contraseña</label>
-          <input id="password" type="text" class="form-control" id="nuevoPassword" name="nuevoPassword" placeholder="Ingrese la contraseña" required />
+          <input id="password" type="text" class="form-control" id="nuevoPassword" name="nuevoPassword" placeholder="Ingrese la contraseña" required  oninput="sinEspacios(this)" />
         </div>
         <div class="mb-3">
   <label class="form-label">Estado</label>
@@ -225,6 +225,7 @@ function eliminar_usuario($conexion, $id_usuario) {
 
 <script src="js/navbar-submenu.js"></script>
 <script src="js/models.js"></script>
+<script src="js/valitationInputs.js"></script><!--valida inputs -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>

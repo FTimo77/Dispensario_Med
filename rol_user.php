@@ -24,14 +24,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (update_rol($conn, $id_rol, $nombre_rol, $estado_rol)) {
       $mensaje = '<div class="alert alert-success">Rol actualizado correctamente.</div>';
     } else {
-      $mensaje = '<div class="alert alert-danger">Error al actualizar el rol.</div>';
+      $mensaje = '<div class="alert alert-danger">El nombre de rol ya existe .</div>';
     }
   } else { // Insertar nuevo rol
     // *** CAMBIO: El estado se establece automáticamente en 1 ***
     if (insert_rol($conn, $nombre_rol, '1')) {
       $mensaje = '<div class="alert alert-success">Rol agregado correctamente.</div>';
     } else {
-      $mensaje = '<div class="alert alert-danger">Error al agregar el rol.</div>';
+      $mensaje = '<div class="alert alert-danger">Nombre de rol ya existe.</div>';
     }
   }
 }
@@ -171,8 +171,8 @@ function eliminar_rol($conexion, $id_rol)
           <input type="hidden" id="id_rol" name="id_rol">
           <div class="mb-3">
             <label for="nombre_rol" class="form-label">Nombre del Rol</label>
-            <input type="text" class="form-control" id="nombre_rol" name="nombre_rol" placeholder="Ej: Administrador"
-              required />
+            <input type="select" class="form-control" id="nombre_rol" name="nombre_rol" placeholder="Ej: Administrador"
+              required  oninput="soloLetras(this)"/>
           </div>
           <!-- *** CAMBIO: Se agregó un ID para poder ocultarlo/mostrarlo *** -->
           <div class="mb-3" id="campoEstadoRol">
@@ -199,6 +199,7 @@ function eliminar_rol($conexion, $id_rol)
 
   <script src="js/navbar-submenu.js"></script>
   <script src="js/models.js"></script>
+  <script src="js/valitationInputs.js"></script><!--valida inputs -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>

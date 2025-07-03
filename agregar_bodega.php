@@ -1,7 +1,7 @@
 <?php
-  session_start();
+session_start();
 
-if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
+if (!isset($_SESSION['usuario']) && !isset($_SESSION['bodega'])) {
     session_destroy();
     header("Location: index.php");
     exit;
@@ -54,7 +54,7 @@ if (isset($_POST['editar_descripcion_bodega']) && isset($_POST['editar_codigo_bo
 
 
 // Insertar nueva bodega
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['editar_codigo_bodega'])) {
+if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['codigo_bodega'])) {
     $descripcion = trim($_POST['descripcion_bodega']);
     $estado = 1; // Siempre activo al crear
 
@@ -66,8 +66,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['editar_codigo_bodega'
         $stmt->bind_param("si", $descripcion, $estado);
         if ($stmt->execute()) {
             $mensaje = '<div class="alert alert-success text-center">Bodega creada correctamente.</div>';
+            // Refrescar la página para mostrar la nueva bodega
+            header("Location: agregar_bodega.php");
+            exit;
         } else {
             $mensaje = '<div class="alert alert-danger text-center">Error al crear la bodega.</div>';
+        }
+        $stmt->close();
+    } else {
+        $mensaje = '<div class="alert alert-warning text-center">Todos los campos son obligatorios.</div>';
+    }
+}
+
+// Actualizar bodega existente
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codigo_bodega'])) {
+    $codigo = $_POST['codigo_bodega'];
+    $descripcion = trim($_POST['editar_descripcion_bodega']);
+
+    if ($descripcion !== "") {
+        $stmt = $conn->prepare("UPDATE bodega SET descripcion=? WHERE codigo_bodega=?");
+        if (!$stmt) {
+            die("Error en la preparación de la consulta: " . $conn->error);
+        }
+        $stmt->bind_param("ss", $descripcion, $codigo);
+        if ($stmt->execute()) {
+            $mensaje = '<div class="alert alert-success text-center">Bodega actualizada correctamente.</div>';
+            // Refrescar la página para mostrar los cambios
+            header("Location: agregar_bodega.php");
+            exit;
+        } else {
+            $mensaje = '<div class="alert alert-danger text-center">Error al actualizar la bodega.</div>';
         }
         $stmt->close();
     } else {
@@ -113,8 +141,7 @@ $conn->close();
                 <i class="bi bi-plus-circle"></i> Crear Bodega
             </button>
         </div>
-        <?php if ($mensaje)
-            echo $mensaje; ?>
+        <?php if ($mensaje) echo $mensaje; ?>
         <div class="card shadow-sm">
             <div class="card-body">
                 <div class="table-responsive">
@@ -134,12 +161,10 @@ $conn->close();
                                     <td><?= htmlspecialchars($bodega['codigo_bodega']) ?></td>
                                     <td><?= htmlspecialchars($bodega['descripcion']) ?></td>
                                     <td class="text-end">
-                                        <!-- Botón Editar-->
-                                        <a href="#" class="btn btn-sm btn-outline-primary me-2" title="Editar"
+                                        <button class="btn btn-sm btn-outline-primary me-2" title="Editar"
                                             onclick="editarBodega('<?= htmlspecialchars($bodega['codigo_bodega'], ENT_QUOTES) ?>', '<?= htmlspecialchars($bodega['descripcion'], ENT_QUOTES) ?>')">
                                             <i class="bi bi-pencil-square"></i>
-                                        </a>
-                                        <!-- Botón Eliminar (cambia estado a 0) -->
+                                        </button>
                                         <a href="?eliminar=<?= urlencode($bodega['codigo_bodega']) ?>"
                                             class="btn btn-sm btn-outline-danger" title="Eliminar"
                                             onclick="return confirm('¿Desea eliminar esta bodega?');">
@@ -169,10 +194,11 @@ $conn->close();
                     <h5 class="modal-title" id="modalCrearBodegaLabel">Crear Bodega</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="mb-3">
-                    <label for="descripcion_bodega" class="form-label">Descripción</label>
-                    <textarea rows="3" name="descripcion_bodega" id="descripcion_bodega" class="form-control"
-                    required></textarea>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="descripcion_bodega" class="form-label">Descripción</label>
+                        <textarea rows="3" name="descripcion_bodega" id="descripcion_bodega" class="form-control" required></textarea>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -191,6 +217,8 @@ $conn->close();
                     <h5 class="modal-title" id="modalEditarBodegaLabel">Editar Bodega</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
+                <div class="modal-body">
+                    <input type="hidden" name="codigo_bodega" id="editar_codigo_bodega">
                     <div class="mb-3">
                         <label for="editar_descripcion_bodega" class="form-label">Descripción</label>
                         <textarea rows="3" name="editar_descripcion_bodega" id="editar_descripcion_bodega"
@@ -209,7 +237,7 @@ $conn->close();
     <script src="js/navbar-submenu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Lógica para abrir el modal de edición con los datos actuales (solo interfaz)
+        // Función para abrir el modal de edición con los datos actuales
         function editarBodega(codigo, descripcion) {
     document.getElementById('editar_codigo_bodega').value = codigo;
     document.getElementById('editar_descripcion_bodega').value = descripcion;
@@ -219,5 +247,4 @@ $conn->close();
 
     </script>
 </body>
-
 </html>
