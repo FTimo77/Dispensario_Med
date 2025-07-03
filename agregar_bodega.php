@@ -14,6 +14,8 @@ $mensaje = "";
 $conexion = new Conexion();
 $conn = $conexion->connect();
 
+
+
 // Eliminar bodega (cambiar estado a 0)
 if (isset($_GET['eliminar'])) {
     $codigoEliminar = $_GET['eliminar'];
@@ -29,6 +31,27 @@ if (isset($_GET['eliminar'])) {
     }
     $stmt->close();
 }
+// Editar bodega 
+if (isset($_POST['editar_descripcion_bodega']) && isset($_POST['editar_codigo_bodega'])) {
+    $descripcionBodega = $_POST['editar_descripcion_bodega'];
+    $codigoBodega = $_POST['editar_codigo_bodega'];
+
+    $stmt = $conn->prepare("UPDATE bodega SET descripcion=? WHERE codigo_bodega=?");
+    if (!$stmt) {
+        die("Error en la preparación de la consulta: " . $conn->error);
+    }
+
+    $stmt->bind_param("ss", $descripcionBodega, $codigoBodega);
+
+    if ($stmt->execute()) {
+        $mensaje = '<div class="alert alert-success text-center">Bodega editada correctamente.</div>';
+    } else {
+        $mensaje = '<div class="alert alert-danger text-center">Error al editar la bodega.</div>';
+    }
+
+    $stmt->close();
+}
+
 
 // Insertar nueva bodega
 if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['editar_codigo_bodega'])) {
@@ -62,6 +85,9 @@ if ($result) {
 }
 $conn->close();
 ?>
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 
@@ -108,7 +134,7 @@ $conn->close();
                                     <td><?= htmlspecialchars($bodega['codigo_bodega']) ?></td>
                                     <td><?= htmlspecialchars($bodega['descripcion']) ?></td>
                                     <td class="text-end">
-                                        <!-- Botón Editar (no funcional aún) -->
+                                        <!-- Botón Editar-->
                                         <a href="#" class="btn btn-sm btn-outline-primary me-2" title="Editar"
                                             onclick="editarBodega('<?= htmlspecialchars($bodega['codigo_bodega'], ENT_QUOTES) ?>', '<?= htmlspecialchars($bodega['descripcion'], ENT_QUOTES) ?>')">
                                             <i class="bi bi-pencil-square"></i>
@@ -156,7 +182,7 @@ $conn->close();
         </div>
     </div>
 
-    <!-- Modal para editar bodega (solo interfaz, funcionalidad no implementada) -->
+    <!-- Modal para editar bodega -->
     <div class="modal fade" id="modalEditarBodega" tabindex="-1" aria-labelledby="modalEditarBodegaLabel"
         aria-hidden="true">
         <div class="modal-dialog">
@@ -170,11 +196,11 @@ $conn->close();
                         <textarea rows="3" name="editar_descripcion_bodega" id="editar_descripcion_bodega"
                             class="form-control" required></textarea>
                     </div>
-                </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-success">Guardar Cambios</button>
                 </div>
+                <input type="hidden" name="editar_codigo_bodega" id="editar_codigo_bodega" value="">
             </form>
         </div>
     </div>
@@ -185,11 +211,12 @@ $conn->close();
     <script>
         // Lógica para abrir el modal de edición con los datos actuales (solo interfaz)
         function editarBodega(codigo, descripcion) {
-            document.getElementById('editar_codigo_bodega').value = codigo;
-            document.getElementById('editar_descripcion_bodega').value = descripcion;
-            var modal = new bootstrap.Modal(document.getElementById('modalEditarBodega'));
-            modal.show();
-        }
+    document.getElementById('editar_codigo_bodega').value = codigo;
+    document.getElementById('editar_descripcion_bodega').value = descripcion;
+    var modal = new bootstrap.Modal(document.getElementById('modalEditarBodega'));
+    modal.show();
+    }
+
     </script>
 </body>
 
