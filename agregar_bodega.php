@@ -32,16 +32,15 @@ if (isset($_GET['eliminar'])) {
 
 // Insertar nueva bodega
 if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['editar_codigo_bodega'])) {
-    $codigo = trim($_POST['codigo_bodega']);
     $descripcion = trim($_POST['descripcion_bodega']);
     $estado = 1; // Siempre activo al crear
 
-    if ($codigo !== "" && $descripcion !== "") {
-        $stmt = $conn->prepare("INSERT INTO bodega (codigo_bodega, descripcion, estado_bodega) VALUES (?, ?, ?)");
+    if ($descripcion !== "") {
+        $stmt = $conn->prepare("INSERT INTO bodega (descripcion, estado_bodega) VALUES (?, ?)");
         if (!$stmt) {
             die("Error en la preparación de la consulta: " . $conn->error);
         }
-        $stmt->bind_param("ssi", $codigo, $descripcion, $estado);
+        $stmt->bind_param("si", $descripcion, $estado);
         if ($stmt->execute()) {
             $mensaje = '<div class="alert alert-success text-center">Bodega creada correctamente.</div>';
         } else {
@@ -144,16 +143,10 @@ $conn->close();
                     <h5 class="modal-title" id="modalCrearBodegaLabel">Crear Bodega</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="codigo" class="form-label">Código bodega</label>
-                        <input type="text" class="form-control" id="codigo" name="codigo_bodega" required />
-                    </div>
-                    <div class="mb-3">
-                        <label for="descripcion_bodega" class="form-label">Descripción</label>
-                        <textarea rows="3" name="descripcion_bodega" id="descripcion_bodega" class="form-control"
-                            required></textarea>
-                    </div>
+                <div class="mb-3">
+                    <label for="descripcion_bodega" class="form-label">Descripción</label>
+                    <textarea rows="3" name="descripcion_bodega" id="descripcion_bodega" class="form-control"
+                    required></textarea>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -172,12 +165,6 @@ $conn->close();
                     <h5 class="modal-title" id="modalEditarBodegaLabel">Editar Bodega</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="editar_codigo_bodega" class="form-label">Código bodega</label>
-                        <input type="text" class="form-control" id="editar_codigo_bodega" name="editar_codigo_bodega"
-                            required readonly />
-                    </div>
                     <div class="mb-3">
                         <label for="editar_descripcion_bodega" class="form-label">Descripción</label>
                         <textarea rows="3" name="editar_descripcion_bodega" id="editar_descripcion_bodega"

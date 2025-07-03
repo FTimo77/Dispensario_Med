@@ -181,13 +181,28 @@ function obtenerPacientes($conexion) {
           <label for="">apellido de Paciente</label>  
           <input type="text" class="form-control" id="apellidop" name="apellidop" placeholder="Ingrese el apellido del paciente" required />
       </div>
-        <div class="mb-3">
-          <label for="">Empresa</label>  
-          <input type="text" class="form-control" id="empresa" name="empresa" placeholder="Ingrese La Empresa a la que pertenece el paciente" required />
-      </div>
+      <select class="form-select mb-3" id="empresa" name="empresa" required>
+        <label for="empresa">Empresa</label>
+        <option value="" disabled selected>Seleccione una empresa</option>
+        <option value="TELECUATRO GUAYAQUIL">TELECUATRO GUAYAQUIL</option>
+        <option value="ORTEL">ORTEL</option>
+        <option value="CENTRADEC">CENTRADEC</option>
+        <option value="DORICO">DORICO</option>
+        <option value="RIDALTO">RIDALTO</option>
+        <option value="TESATEL">TESATEL</option>
+        <option value="ECUADORADIO">ECUADORADIO</option>
+        <option value="INDETEL">INDETEL</option>
+        <option value="ANDIVISION">ANDIVISION</option>
+        <option value="KASHMIR">KASHMIR</option>
+        <option value="TRAFALGAR">TRAFALGAR</option>
+        <option value="AYAX">AYAX</option>
+        <option value="ECUASERVIPRODU">ECUASERVIPRODU</option>
+        <option value="MEGACOMUNICATIONS">MEGACOMUNICATIONS</option>
+        <option value="YOMAR">YOMAR</option>
+      </select>
         <div class="mb-3">
         <label class="form-label">Estado</label>
-        <div>  <!-- -->
+        </div> 
     <div class="form-check form-check-inline">
       <input class="form-check-input" type="radio" name="estado" id="estadoActivo" value="1" checked>
         <label class="form-check-label" for="estadoActivo" >Activo</label>
@@ -195,9 +210,9 @@ function obtenerPacientes($conexion) {
       <div class="form-check form-check-inline">
       <input class="form-check-input" type="radio" name="estado" id="estadoInactivo" value="0">
         <label class="form-check-label" for="estadoInactivo">Inactivo</label>
+      </div>
     </div>
-    </div>
-    </div>
+    <div>
         <input type="hidden" id="idUsuaro" name="idUsuario" value="" hidden>
       </div>
       <div class="modal-footer">
@@ -207,6 +222,8 @@ function obtenerPacientes($conexion) {
     </form>
   </div>
 </div>
+
+
 
 <script src="js/navbar-submenu.js"></script>
 <script src="js/models.js"></script>
