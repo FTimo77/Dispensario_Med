@@ -175,11 +175,11 @@ function obtenerPacientes($conexion) {
       <div class="modal-body">
       <div class="mb-3">
           <label for="">Nombre de Paciente</label>  
-          <input type="text" class="form-control" id="nombrep" name="nombrep" placeholder="Ingrese el nombre del paciente" required />
+          <input type="text" class="form-control" id="nombrep" name="nombrep" placeholder="Ingrese el nombre del paciente" required oninput="letrasYEspacios(this)"/>
       </div>
         <div class="mb-3">
-          <label for="">apellido de Paciente</label>  
-          <input type="text" class="form-control" id="apellidop" name="apellidop" placeholder="Ingrese el apellido del paciente" required />
+          <label for="">Apellido de Paciente</label>  
+          <input type="text" class="form-control" id="apellidop" name="apellidop" placeholder="Ingrese el apellido del paciente" required   required oninput="letrasYEspacios(this)"/>
       </div>
       <select class="form-select mb-3" id="empresa" name="empresa" required>
         <label for="empresa">Empresa</label>
@@ -227,6 +227,7 @@ function obtenerPacientes($conexion) {
 
 <script src="js/navbar-submenu.js"></script>
 <script src="js/models.js"></script>
+<script src="js/valitationInputs.js"></script><!--valida inputs -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
