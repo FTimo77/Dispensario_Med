@@ -171,6 +171,7 @@ CREATE TABLE `rol_usuario` (
 
 INSERT INTO `rol_usuario` (`COD_ROL`, `NOMBRE_ROL`, `ESTADO_ROL`) VALUES
 (1, 'admin', '1');
+(2, 'doctor', '1');
 
 -- --------------------------------------------------------
 
