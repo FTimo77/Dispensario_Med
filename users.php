@@ -35,6 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   //  echo $pass_usuario.'<br>';
   //    echo"estado" .$estado.'<br>';
     if($agregarEditar=="agregar"){
+        $estado = 1; // Siempre activo al crear
         if (insert_usuario($conexion, $cod_rol, $nombre_usuario, $pass_usuario, $estado)) {
           header("Location: users.php");
           exit();
@@ -54,20 +55,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 function insert_usuario($conexion, $cod_rol, $nombre_usuario, $pass_usuario, $estado) {
+    $pass_usuario_hash = password_hash($pass_usuario, PASSWORD_DEFAULT); // <-- Hashea aquí
     $stmt = $conexion->prepare("INSERT INTO usuario (COD_ROL, NOMBRE_USUARIO, PASS_USUARIO, ESTADO_USUARIO) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $cod_rol, $nombre_usuario, $pass_usuario, $estado);
+    $stmt->bind_param("isss", $cod_rol, $nombre_usuario, $pass_usuario_hash, $estado);
     return $stmt->execute();
 }
 
 function editarUsuario($conexion, $id_usuario, $cod_rol, $nombre_usuario, $pass_usuario, $estado) {
-    $stmt = $conexion->prepare("UPDATE usuario 
-        SET COD_ROL = ?, 
-            NOMBRE_USUARIO = ?, 
-            PASS_USUARIO = ?, 
-            ESTADO_USUARIO = ? 
-        WHERE ID_USUARIO = ?");
-        
-    $stmt->bind_param("issss", $cod_rol, $nombre_usuario, $pass_usuario, $estado, $id_usuario);
+    if (!empty($pass_usuario)) {
+        // Si hay nueva contraseña, hashearla y actualizar
+        $pass_usuario_hash = password_hash($pass_usuario, PASSWORD_DEFAULT);
+        $stmt = $conexion->prepare("UPDATE usuario 
+            SET COD_ROL = ?, 
+                NOMBRE_USUARIO = ?, 
+                PASS_USUARIO = ?, 
+                ESTADO_USUARIO = ? 
+            WHERE ID_USUARIO = ?");
+        $stmt->bind_param("isssi", $cod_rol, $nombre_usuario, $pass_usuario_hash, $estado, $id_usuario);
+    } else {
+        // Si no hay nueva contraseña, no actualizar ese campo
+        $stmt = $conexion->prepare("UPDATE usuario 
+            SET COD_ROL = ?, 
+                NOMBRE_USUARIO = ?, 
+                ESTADO_USUARIO = ? 
+            WHERE ID_USUARIO = ?");
+        $stmt->bind_param("issi", $cod_rol, $nombre_usuario, $estado, $id_usuario);
+    }
     return $stmt->execute();
 }
 
@@ -114,8 +127,6 @@ function eliminar_usuario($conexion, $id_usuario) {
               <th>ID</th>
               <th>Nombre usuario</th>
               <th>Rol Usuario</th>
-              <th>Password</th>
-              <th>Estado</th>
               <th>Editar</th>
               <th>Eliminar</th>
             </tr>
@@ -124,7 +135,7 @@ function eliminar_usuario($conexion, $id_usuario) {
             <?php
             $con = new Conexion();
             $con = $con->connect();
-            $usuarios = obtenerUsuarios($con,true);
+            $usuarios = obtenerUsuarios($con, false); // false = solo activos
 
             if ($usuarios) {
                 foreach ($usuarios as $usuario) {
@@ -132,20 +143,16 @@ function eliminar_usuario($conexion, $id_usuario) {
                     echo "<td>" . htmlspecialchars($usuario['ID_USUARIO']) . "</td>";
                     echo "<td>" . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "</td>";
                     echo "<td>" . htmlspecialchars($usuario['NOMBRE_ROL']) . "</td>";
-                    echo "<td>" . htmlspecialchars($usuario['PASS_USUARIO']) . "</td>";
-                    echo "<td>" . ($usuario['ESTADO_USUARIO'] == '1' ? 'Activo' : 'Inactivo') . "</td>";
-                   echo "<td><a class='btn_editar' href='#' onclick=\"abrirModalEditar('"
-                  . htmlspecialchars($usuario['ID_USUARIO']) . "', '"
-                  . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "', '"
-                  . htmlspecialchars($usuario['PASS_USUARIO']) . "', '"
-                  . htmlspecialchars($usuario['NOMBRE_ROL']) . "', '"
-                  . htmlspecialchars($usuario['COD_ROL']) . "', '"
-                  . htmlspecialchars($usuario['ESTADO_USUARIO']) . "')\">
-                      <i class='bi bi-pencil-square'></i></a></td>";
+                    echo "<td><a class='btn_editar' href='#' onclick=\"abrirModalEditar('"
+                        . htmlspecialchars($usuario['ID_USUARIO']) . "', '"
+                        . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "', '"
+                        . htmlspecialchars($usuario['NOMBRE_ROL']) . "', '"
+                        . htmlspecialchars($usuario['COD_ROL']) . "')\">
+                        <i class='bi bi-pencil-square'></i></a></td>";
                     echo "<td><a class='btn_eliminar' href='?id_usuario=" . htmlspecialchars($usuario['ID_USUARIO']) . "' onclick=\"return confirm('¿Estás seguro que deseas eliminar este usuario?')\"><i class='bi bi-trash3-fill'></i></a></td>";
                 }
             } else {
-                echo "<tr><td colspan='7' class='text-center'>No hay datos</td></tr>";
+                echo "<tr><td colspan='5' class='text-center'>No hay datos</td></tr>";
             }
             ?>
           </tbody>
@@ -164,60 +171,49 @@ function eliminar_usuario($conexion, $id_usuario) {
 <!-- Modal para agregar usuario -->
 <div class="modal fade" id="modalAgregarUsuario" tabindex="-1" aria-labelledby="modalAgregarUsuarioLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form class="modal-content" id="formAgregarUsuario" autocomplete="off" method="POST" action="">
+    <form class="modal-content" id="formAgregarUsuario" autocomplete="off" method="POST" action="" onsubmit="return validarFormularioUsuario();">
       <div class="modal-header">
         <h5 class="modal-title" id="abrirModalAgregarLabel">Agregar Usuario</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-        <input type="text" class="form-control" id="idUsuaro" name="idUsuario"  hidden readonly /><!-- id se habilita en la edision-->
-      <label for="nuevoRol" class="form-label">Rol</label>
-      <select class="form-select" id="nuevoRol" name="nuevoRol" required>
-        <option id="rol" value="">Seleccione</option>
-        <?php
-          require_once "config/conexion.php";
-          require_once "includes/usuario_model.php";
-
-          $con = new Conexion();
-          $con = $con->connect(); 
-          $roles = obtenerRoles($con);
+          <input type="text" class="form-control" id="idUsuaro" name="idUsuario" hidden readonly />
+          <label for="nuevoRol" class="form-label">Rol</label>
+          <select class="form-select" id="nuevoRol" name="nuevoRol" required>
+            <option id="rol" value="">Seleccione</option>
+            <?php
+              require_once "config/conexion.php";
+              require_once "includes/usuario_model.php";
+              $con = new Conexion();
+              $con = $con->connect(); 
+              $roles = obtenerRoles($con);
               if ($roles) {
                   foreach ($roles as $rol) {
                       echo '<option value="' . $rol['COD_ROL'] . '">' . htmlspecialchars($rol['NOMBRE_ROL']) . '</option>';
                   }
               } else {
-                  echo "<postion > No  hay roles disponibles</option>";
+                  echo "<option>No hay roles disponibles</option>";
               }
-          ?>
-      </select>
+            ?>
+          </select>
         </div>
         <div class="mb-3">
           <label for="nuevoUsuario" class="form-label">Usuario</label>
-          <input type="text" class="form-control" id="nuevoUsuario" name="nuevoUsuario" placeholder="Ingrese el nombre de usuario" required  oninput="soloLetras(this)"/>
+          <input type="text" class="form-control" id="nuevoUsuario" name="nuevoUsuario" placeholder="Ingrese el nombre de usuario" required oninput="soloLetras(this)"/>
         </div>
         <div class="mb-3">
           <label for="nuevoPassword" class="form-label">Contraseña</label>
-          <input id="password" type="text" class="form-control" id="nuevoPassword" name="nuevoPassword" placeholder="Ingrese la contraseña" required  oninput="sinEspacios(this)" />
+          <input type="password" class="form-control" id="nuevoPassword" name="nuevoPassword" placeholder="Ingrese su nueva contraseña" required />
         </div>
         <div class="mb-3">
-  <label class="form-label">Estado</label>
-  <div>  <!-- -->
-    <div class="form-check form-check-inline">
-      <input class="form-check-input" type="radio" name="estado" id="estadoActivo" value="1" checked>
-        <label class="form-check-label" for="estadoActivo" >Activo</label>
-      </div>
-      <div class="form-check form-check-inline">
-      <input class="form-check-input" type="radio" name="estado" id="estadoInactivo" value="0">
-        <label class="form-check-label" for="estadoInactivo">Inactivo</label>
-    </div>
-  </div>
-</div>
-
+          <label for="repetirPassword" class="form-label">Repetir Contraseña</label>
+          <input type="password" class="form-control" id="repetirPassword" name="repetirPassword" placeholder="Repita la contraseña" required />
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button  id="btnAgregarEditar" type="submit" class="btn btn-success" name="agregarEditar" value="agregar">Agregar</button>
+        <button id="btnAgregarEditar" type="submit" class="btn btn-success" name="agregarEditar" value="agregar">Agregar</button>
       </div>
     </form>
   </div>
@@ -231,13 +227,12 @@ function eliminar_usuario($conexion, $id_usuario) {
 <script>
   const modal = new bootstrap.Modal(document.getElementById('modalAgregarUsuario'));
 
-  function abrirModalEditar(id_usuario, nombre,pass_usuario, rol, cod_rol,estado) {
+  function abrirModalEditar(id_usuario, nombre, pass_usuario, rol, cod_rol, estado) {
     document.getElementById('nuevoUsuario').value = nombre;
     document.getElementById('rol').innerHTML = rol;
     document.getElementById('rol').value = cod_rol;
-    document.getElementById('password').value = pass_usuario;
-    
-    
+    document.getElementById('password').value = ''; // <-- Deja vacío
+
     let radio=null
     if(estado=='1'){
        radio =document.getElementById("estadoActivo")
@@ -279,9 +274,19 @@ function eliminar_usuario($conexion, $id_usuario) {
     console.log(btnAgregarEditar);
     modal.show();
   }
-  
 
+  function validarFormularioUsuario() {
+    const pass = document.getElementById('nuevoPassword').value;
+    const pass2 = document.getElementById('repetirPassword').value;
+    const error = validarPassword(pass, pass2); // Esta sí está en js/validaciones.js
+    if (error) {
+        alert(error);
+        return false;
+    }
+    return true;
+}
 </script>
+<script src="js/validaciones.js"></script>
 
 </body>
 </html>
