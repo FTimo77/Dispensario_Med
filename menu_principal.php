@@ -59,6 +59,7 @@ WHERE
     TIMESTAMPDIFF(MONTH, NOW(), L.FECH_VENC) < 9 
     AND P.ESTADO_PROD = 1 
     AND P.CODIGO_BODEGA = ?
+    AND L.ESTADO_LOTE = 1
 ";
 
     $stmt = $conexion->prepare($sql);

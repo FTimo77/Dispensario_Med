@@ -43,6 +43,41 @@ if ($tipo === 'minimos') {
     $mostrar_estado_prod = false;
 }
 
+// Obtener productos para el filtro
+$productos_filtro = [];
+$res_prod = $conn->query("SELECT id_prooducto, NOM_PROD FROM producto WHERE estado_prod = 1 AND codigo_bodega = ".$_SESSION['bodega']);
+while ($row = $res_prod->fetch_assoc()) {
+    $productos_filtro[] = $row;
+}
+$producto_seleccionado = $_GET['producto'] ?? '';
+
+$where_producto = '';
+if ($producto_seleccionado) {
+    $where_producto = " AND l.ID_PROODUCTO = " . intval($producto_seleccionado);
+}
+
+// Obtener categorías para el filtro
+$categorias_filtro = [];
+$res_cat = $conn->query("SELECT id_categoria, nombre_cat FROM categoria WHERE estado_cat = 1");
+while ($row = $res_cat->fetch_assoc()) {
+    $categorias_filtro[] = $row;
+}
+$categoria_seleccionada = $_GET['categoria'] ?? '';
+
+$where_categoria = '';
+if ($categoria_seleccionada) {
+    $where_categoria = " AND p.ID_CATEGORIA = " . intval($categoria_seleccionada);
+}
+
+// Ordenar por stock
+$orden_stock = $_GET['orden_stock'] ?? '';
+$order_by_stock = '';
+if ($orden_stock === 'asc') {
+    $order_by_stock = 'l.CANTIDAD_LOTE ASC, ';
+} elseif ($orden_stock === 'desc') {
+    $order_by_stock = 'l.CANTIDAD_LOTE DESC, ';
+}
+
 // Consulta SQL
 $sql_lotes = "
     SELECT
@@ -70,8 +105,10 @@ $sql_lotes = "
         AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
         $extra_where
         $where_fecha
+        $where_producto
+        $where_categoria
     ORDER BY 
-        l.FECHA_ING DESC
+        $order_by_stock l.FECHA_ING DESC
 ";
 
 $res_lotes = $conn->query($sql_lotes);
@@ -112,16 +149,45 @@ $conn->close();
         <form class="row g-3 mb-4" method="get">
             <input type="hidden" name="tipo" value="<?php echo htmlspecialchars($tipo); ?>">
             <div class="col-auto">
-                <label for="fecha_inicio" class="col-form-label">Desde:</label>
+                <label for="producto" class="col-form-label">Producto:</label>
             </div>
             <div class="col-auto">
-                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="<?php echo htmlspecialchars($fecha_inicio); ?>">
+                <select class="form-select" id="producto" name="producto">
+                    <option value="">Todos</option>
+                    <?php foreach ($productos_filtro as $prod): ?>
+                        <option value="<?= $prod['id_prooducto'] ?>" <?= ($producto_seleccionado == $prod['id_prooducto']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($prod['NOM_PROD']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="col-auto">
-                <label for="fecha_fin" class="col-form-label">Hasta:</label>
+                <label for="categoria" class="col-form-label">Categoría:</label>
             </div>
             <div class="col-auto">
-                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="<?php echo htmlspecialchars($fecha_fin); ?>">
+                <select class="form-select" id="categoria" name="categoria">
+                    <option value="">Todas</option>
+                    <?php foreach ($categorias_filtro as $cat): ?>
+                        <option value="<?= $cat['id_categoria'] ?>" <?= ($categoria_seleccionada == $cat['id_categoria']) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($cat['nombre_cat']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label for="orden_stock" class="col-form-label">Ordenar por stock:</label>
+            </div>
+            <div class="col-auto">
+                <select class="form-select" id="orden_stock" name="orden_stock">
+                    <option value="">Sin orden</option>
+                    <option value="asc" <?= (($_GET['orden_stock'] ?? '') === 'asc') ? 'selected' : '' ?>>Menor a mayor</option>
+                    <option value="desc" <?= (($_GET['orden_stock'] ?? '') === 'desc') ? 'selected' : '' ?>>Mayor a menor</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalFechas">
+                    <i class="bi bi-calendar-range"></i> Filtrar por fecha
+                </button>
             </div>
             <div class="col-auto">
                 <button type="submit" class="btn btn-primary">Filtrar</button>
@@ -204,6 +270,36 @@ $conn->close();
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Modal Filtro de Fechas -->
+    <div class="modal fade" id="modalFechas" tabindex="-1" aria-labelledby="modalFechasLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" method="get">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalFechasLabel">Filtrar por rango de fechas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" name="tipo" value="<?php echo htmlspecialchars($tipo); ?>">
+            <input type="hidden" name="producto" value="<?php echo htmlspecialchars($producto_seleccionado); ?>">
+            <input type="hidden" name="categoria" value="<?php echo htmlspecialchars($categoria_seleccionada); ?>">
+            <input type="hidden" name="orden_stock" value="<?php echo htmlspecialchars($orden_stock); ?>">
+            <div class="mb-3">
+              <label for="fecha_inicio" class="form-label">Desde:</label>
+              <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="<?php echo htmlspecialchars($fecha_inicio); ?>">
+            </div>
+            <div class="mb-3">
+              <label for="fecha_fin" class="form-label">Hasta:</label>
+              <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="<?php echo htmlspecialchars($fecha_fin); ?>">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+          </div>
+        </form>
+      </div>
     </div>
 
     <script src="js/models.js"></script>
