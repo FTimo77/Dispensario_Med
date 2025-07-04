@@ -231,7 +231,7 @@ $conn->close();
             <div class="col-12">
               <label for="productname" class="form-label">Nombre del producto</label>
               <input type="text" class="form-control" id="productname" name="productname" placeholder="Ej. Paracetamol"
-                required />
+                required oninput="letrasYEspacios(this)"/>
             </div>
             <div class="col-12">
               <label for="presentacionproducto" class="form-label">Presentación del producto</label>
@@ -285,7 +285,7 @@ $conn->close();
                 </button>
               </div>
               <input type="text" class="form-control mt-2" id="nueva_categoria" name="nueva_categoria"
-                placeholder="O escriba una nueva categoría" />
+                placeholder="O escriba una nueva categoría" oninput="letrasYEspacios(this)" />
               <small class="text-muted">Seleccione una categoría existente o escriba una nueva.</small>
             </div>
             <div class="col-12">
@@ -345,6 +345,7 @@ $conn->close();
   </div>
   <script src="js/models.js"></script>
   <script src="js/navbar-submenu.js"></script>
+    <script src="js/valitationInputs.js"></script><!--valida inputs -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // --- EDICIÓN DE PRODUCTO ---
