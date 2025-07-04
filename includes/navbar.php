@@ -20,101 +20,85 @@
               </a>
             </li>
           </ul>
-        </li>
-        <!-- Registro de Datos -->
+        </li><?php 
+$nombre_rol = $_SESSION["nombre_rol"];
+
+if ($nombre_rol === 'admin' || $nombre_rol === 'doctor'): ?>
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button" data-bs-toggle="dropdown"
+      aria-expanded="false">
+      <i class="bi bi-pencil-square"></i> Registro de Datos
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="registroDropdown">
+      
+      <?php if ($nombre_rol === 'admin'): ?>
+        <li><h6 class="dropdown-header">Administración</h6></li>
+        <li><a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a></li>
+        <li><a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a></li>
+        <li><a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a></li>
+        <li><hr class="dropdown-divider" /></li>
+      <?php endif; ?>
+
+      <li><h6 class="dropdown-header">Inventario</h6></li>
+      <li><a class="dropdown-item" href="agregar_bodega.php"><i class="bi bi-building"></i> Bodega</a></li>
+      <li><a class="dropdown-item" href="producto.php"><i class="bi bi-box"></i> Productos</a></li>
+
+    </ul>
+  </li>
+<?php endif; ?>
+
+        <!-- Transacciones -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            <i class="bi bi-pencil-square"></i> Registro de Datos
+          <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button"
+            data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-arrow-left-right"></i> Transacciones
           </a>
-          <ul class="dropdown-menu" aria-labelledby="registroDropdown">
+          <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
             <li>
-              <h6 class="dropdown-header">Administración</h6>
+              <a class="dropdown-item" href="./ingreso.php"><i class="bi bi-box-arrow-in-down"></i> Ingreso de
+                Stock</a>
+            </li>
+            <li class="dropdown-submenu">
+              <a class="dropdown-item dropdown-toggle" href="#">
+                <i class="bi bi-box-arrow-up"></i> Egreso de Stock
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="egreso_unificado.php?tipo=normal">
+                    <i class="bi bi-person-check"></i> Por Atención
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="egreso_unificado.php?tipo=botiquin">
+                    <i class="bi bi-prescription2"></i> Por Botiquín
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+        <!-- Reportes -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown"
+            aria-expanded="false">
+            <i class="bi bi-bar-chart"></i> Reportes
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
+            <li>
+              <a class="dropdown-item" href="./reporte_lotes.php?tipo=minimos">
+                <i class="bi bi-exclamation-circle"></i> Existencias Mínimas
+              </a>
             </li>
             <li>
-              <a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a>
+              <a class="dropdown-item" href="#"><i class="bi bi-hourglass-split"></i> Productos por Caducar</a>
             </li>
             <li>
-              <a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a>
+              <a class="dropdown-item" href="./reporte_lotes.php?tipo=general">
+                <i class="bi bi-list-ul"></i> General de productos
+              </a>
             </li>
+          </ul>
         </li>
-        <li>
-          <a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a>
-        </li>
-        <li>
-          <hr class="dropdown-divider" />
-        </li>
-        <li>
-          <h6 class="dropdown-header">Inventario</h6>
-        </li>
-        <li>
-          <a class="dropdown-item" href="agregar_bodega.php"><i class="bi bi-building"></i> Bodega</a>
-        </li>
-        <li>
-          <a class="dropdown-item" href="producto.php"><i class="bi bi-box"></i> Productos</a>
-        </li>
-      </ul>
-      </li>
-      <!-- Transacciones -->
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button" data-bs-toggle="dropdown"
-          aria-expanded="false">
-          <i class="bi bi-arrow-left-right"></i> Transacciones
-        </a>
-        <ul class="dropdown-menu" aria-labelledby="transaccionesDropdown">
-          <li>
-            <a class="dropdown-item" href="./ingreso.php"><i class="bi bi-box-arrow-in-down"></i> Ingreso de
-              Stock</a>
-          </li>
-          <li class="dropdown-submenu">
-            <a class="dropdown-item dropdown-toggle" href="#">
-              <i class="bi bi-box-arrow-up"></i> Egreso de Stock
-            </a>
-            <ul class="dropdown-menu">
-              <li>
-                <a class="dropdown-item" href="egreso_unificado.php?tipo=normal">
-                  <i class="bi bi-person-check"></i> Por Atención
-                </a>
-              </li>
-              <li>
-                <a class="dropdown-item" href="egreso_unificado.php?tipo=botiquin">
-                  <i class="bi bi-prescription2"></i> Por Botiquín
-                </a>
-              </li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-      <!-- Reportes -->
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="reportesDropdown" role="button" data-bs-toggle="dropdown"
-          aria-expanded="false">
-          <i class="bi bi-bar-chart"></i> Reportes
-        </a>
-        <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
-          <li>
-            <a class="dropdown-item" href="./reporte_lotes.php?tipo=minimos">
-              <i class="bi bi-exclamation-circle"></i> Existencias Mínimas
-            </a>
-          </li>
-          <li>
-            <a class="dropdown-item" href="reporte_movimientos.php"><i class="bi bi-arrow-down-up"></i> Movimientos</a>
-          </li>
-          <li>
-            <a class="dropdown-item" href="reporte_recetas.php"><i class="bi bi-file-earmark-medical"></i> Recetas
-              emitidas</a>
-          </li>
-          <li>
-            <a class="dropdown-item" href="reporte_caducados.php"><i class="bi bi-calendar-x"></i> Productos
-              Caducados</a>
-          </li>
-          <li>
-            <a class="dropdown-item" href="./reporte_lotes.php?tipo=general">
-              <i class="bi bi-list-ul"></i> General de productos
-            </a>
-          </li>
-        </ul>
-      </li>
       </ul>
       <!-- Agrega esto justo antes de cerrar el div .navbar-collapse -->
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
