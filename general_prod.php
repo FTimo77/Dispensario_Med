@@ -30,6 +30,7 @@ $sql_lotes = "
         l.FECH_VENC, 
         l.FECH_FABRI, 
         l.FECHA_ING,
+        l.ESTADO_LOTE,
         p.NOM_PROD, 
         p.PRESENTACION_PROD, 
         p.stock_min_prod,
@@ -122,7 +123,7 @@ $conn->close();
                                 <th>Fecha Vencimiento</th>
                                 <th>Fecha Ingreso Lote</th>
                                 <th>Bodega</th>
-                                <th>Estado Producto</th>
+                                <th>Estado Lote</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -143,10 +144,10 @@ $conn->close();
                                         <td><?php echo htmlspecialchars($lote['FECH_FABRI']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['FECH_VENC']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['FECHA_ING']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['CODIGO_BODEGA']); ?></td>
+                                        <td><?php echo htmlspecialchars($_SESSION['nombre_bodega']); ?></td>
                                         <td>
                                             <?php
-                                            echo ($lote['estado_prod'] == 1) ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
+                                            echo ($lote['ESTADO_LOTE'] == 1) ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
                                             ?>
                                         </td>
                                     </tr>

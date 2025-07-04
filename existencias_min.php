@@ -22,13 +22,13 @@ $lotes = []; // Inicializamos la variable lotes
 $sql_lotes = "
     SELECT
         l.NUM_LOTE, 
+        l.CANTIDAD_LOTE,
         l.FECH_VENC, 
         l.FECH_FABRI, 
         l.FECHA_ING,
         p.NOM_PROD, 
         p.PRESENTACION_PROD, 
         p.stock_min_prod,
-        p.stock_act_prod,
         p.estado_prod,
         p.CODIGO_BODEGA,
         c.nombre_cat
@@ -40,13 +40,13 @@ $sql_lotes = "
         categoria c ON p.ID_CATEGORIA = c.id_categoria
     WHERE 
         p.estado_prod = 1 
-        AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
-        and p.stock_min_prod < 10
+        AND p.CODIGO_BODEGA = " . $_SESSION['bodega'] . "
+        AND l.CANTIDAD_LOTE = p.stock_min_prod
     ORDER BY 
         l.FECHA_ING DESC
 ";
 
-$res_lotes = $conn->query($sql_lotes); 
+$res_lotes = $conn->query($sql_lotes);
 
 if ($res_lotes) {
     while ($row = $res_lotes->fetch_assoc()) {
@@ -82,7 +82,7 @@ $conn->close();
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0 px-3 py-2 rounded"
                 style="background: rgba(255,255,255,0.85); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                Reporte  Existencias minimas
+                Reporte Existencias minimas
             </h2>
         </div>
         <?php if (!empty($mensaje)): ?>
@@ -125,7 +125,7 @@ $conn->close();
                                         <td><?php echo htmlspecialchars($lote['NOM_PROD']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['PRESENTACION_PROD']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['nombre_cat']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['stock_act_prod']); ?></td>
+                                        <td><?php echo htmlspecialchars($lote['CANTIDAD_LOTE']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['stock_min_prod']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['FECH_FABRI']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['FECH_VENC']); ?></td>

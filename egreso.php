@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $stmt_update_stock = $conn->prepare("UPDATE producto SET stock_act_prod = ? WHERE id_prooducto = ?");
       $stmt_insert_kardex = $conn->prepare("INSERT INTO kardex (ID_PROODUCTO, COD_TRANSAC, ID_USUARIO, CANTIDAD) VALUES (?, ?, ?, ?)");
       $stmt_update_lote = $conn->prepare("UPDATE lote SET CANTIDAD_LOTE = ? WHERE num_lote = ?");
-      $stmt_check_lote = $conn->prepare("SELECT CANTIDAD_LOTE FROM lote WHERE num_lote = ? FOR UPDATE");
+      $stmt_check_lote = $conn->prepare("SELECT NUM_LOTE, CANTIDAD_LOTE FROM lote WHERE ID_PROODUCTO = ? AND estado_lote = 1");
 
       for ($i = 0; $i < $total; $i++) {
         $id_producto = (int) $productos_egreso[$i];

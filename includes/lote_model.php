@@ -11,7 +11,7 @@ if(isset($_GET['id_producto'])) {
         die(json_encode(["error" => "Conexión fallida: " . $conn->connect_error]));
     }
     
-    $query = "SELECT * FROM lote WHERE ID_PROODUCTO = ?";
+    $query = "SELECT * FROM lote WHERE ID_PROODUCTO = ? AND estado_lote = 1 AND CANTIDAD_LOTE > 0";
     $stmt = $conn->prepare($query);
     
     // Debug: Si prepare falla
