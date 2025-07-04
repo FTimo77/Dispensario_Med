@@ -20,32 +20,38 @@
               </a>
             </li>
           </ul>
-        </li><?php 
-$nombre_rol = $_SESSION["nombre_rol"];
+        </li><?php
+        $nombre_rol = $_SESSION["nombre_rol"];
 
-if ($nombre_rol === 'admin' || $nombre_rol === 'doctor'): ?>
-  <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button" data-bs-toggle="dropdown"
-      aria-expanded="false">
-      <i class="bi bi-pencil-square"></i> Registro de Datos
-    </a>
-    <ul class="dropdown-menu" aria-labelledby="registroDropdown">
-      
-      <?php if ($nombre_rol === 'admin'): ?>
-        <li><h6 class="dropdown-header">Administración</h6></li>
-        <li><a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a></li>
-        <li><a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a></li>
-        <li><a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a></li>
-        <li><hr class="dropdown-divider" /></li>
-      <?php endif; ?>
+        if ($nombre_rol === 'admin' || $nombre_rol === 'doctor'): ?>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <i class="bi bi-pencil-square"></i> Registro de Datos
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="registroDropdown">
 
-      <li><h6 class="dropdown-header">Inventario</h6></li>
-      <li><a class="dropdown-item" href="agregar_bodega.php"><i class="bi bi-building"></i> Bodega</a></li>
-      <li><a class="dropdown-item" href="producto.php"><i class="bi bi-box"></i> Productos</a></li>
+              <?php if ($nombre_rol === 'admin'): ?>
+                <li>
+                  <h6 class="dropdown-header">Administración</h6>
+                </li>
+                <li><a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a></li>
+                <li><a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a></li>
+                <li><a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a></li>
+                <li>
+                  <hr class="dropdown-divider" />
+                </li>
+              <?php endif; ?>
 
-    </ul>
-  </li>
-<?php endif; ?>
+              <li>
+                <h6 class="dropdown-header">Inventario</h6>
+              </li>
+              <li><a class="dropdown-item" href="agregar_bodega.php"><i class="bi bi-building"></i> Bodega</a></li>
+              <li><a class="dropdown-item" href="producto.php"><i class="bi bi-box"></i> Productos</a></li>
+
+            </ul>
+          </li>
+        <?php endif; ?>
 
         <!-- Transacciones -->
         <li class="nav-item dropdown">
@@ -90,7 +96,16 @@ if ($nombre_rol === 'admin' || $nombre_rol === 'doctor'): ?>
               </a>
             </li>
             <li>
-              <a class="dropdown-item" href="#"><i class="bi bi-hourglass-split"></i> Productos por Caducar</a>
+              <a class="dropdown-item" href="reporte_movimientos.php"><i class="bi bi-arrow-down-up"></i>
+                Movimientos</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="reporte_recetas.php"><i class="bi bi-file-earmark-medical"></i> Recetas
+                emitidas</a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="reporte_caducados.php"><i class="bi bi-calendar-x"></i> Productos
+                Caducados</a>
             </li>
             <li>
               <a class="dropdown-item" href="./reporte_lotes.php?tipo=general">
