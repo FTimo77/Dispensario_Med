@@ -105,7 +105,8 @@ CREATE TABLE `lote` (
   `FECH_VENC` date NOT NULL,
   `FECH_FABRI` date NOT NULL,
   `FECHA_ING` date NOT NULL,
-  `CANTIDAD_LOTE` int(11) NOT NULL
+  `CANTIDAD_LOTE` int(11) NOT NULL, 
+  `ESTADO_LOTE` char(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
