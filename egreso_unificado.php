@@ -3,152 +3,135 @@
 session_start();
 
 if (!isset($_SESSION['usuario'])) {
-  session_destroy();
-  header("Location: index.php");
-  exit;
+    session_destroy();
+    header("Location: index.php");
+    exit;
 }
 require_once 'config/conexion.php';
 
+$tipo = $_GET['tipo'] ?? 'normal'; // 'normal' o 'botiquin'
 $productos = [];
 $conexion = new Conexion();
 $conn = $conexion->connect();
-$codigo_bodega_actual = $_SESSION['bodega'] ?? 0; // Obtener la bodega de la sesión
+$codigo_bodega_actual = $_SESSION['bodega'] ?? 0;
+
 $stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD, stock_act_prod FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
-$stmt_prod->bind_param("s", $codigo_bodega_actual); // 'i' porque el código de bodega es un entero
+$stmt_prod->bind_param("s", $codigo_bodega_actual);
 $stmt_prod->execute();
 $res_prod = $stmt_prod->get_result();
 if ($res_prod) {
-  while ($row = $res_prod->fetch_assoc()) {
-    $productos[] = $row;
-  }
+    while ($row = $res_prod->fetch_assoc()) {
+        $productos[] = $row;
+    }
 }
 
 $pacientes = [];
-$stmt_pac = $conn->prepare("SELECT id_paciente, nombre_paciente, apellido_paciente FROM pacientes WHERE est_paciente = 1");
-$stmt_pac->execute();
-$res_pac = $stmt_pac->get_result();
-while ($row = $res_pac->fetch_assoc()) {
-  $pacientes[] = $row;
+if ($tipo === 'normal') {
+    $stmt_pac = $conn->prepare("SELECT id_paciente, nombre_paciente, apellido_paciente FROM pacientes WHERE est_paciente = 1");
+    $stmt_pac->execute();
+    $res_pac = $stmt_pac->get_result();
+    while ($row = $res_pac->fetch_assoc()) {
+        $pacientes[] = $row;
+    }
+    $stmt_pac->close();
 }
-$stmt_pac->close();
-
 
 $mensaje = "";
 
-$nuevo_paciente_nombre = trim($_POST['nuevo_paciente_nombre'] ?? '');
-$nuevo_paciente_apellido = trim($_POST['nuevo_paciente_apellido'] ?? '');
-
-if (isset($_POST['paciente']) && $_POST['paciente'] === 'nuevo' && $nuevo_paciente_nombre !== "" && $nuevo_paciente_apellido !== "") {
-  // Insertar nuevo paciente
-  $empresa_null = null;
-  $stmt_nuevo_pac = $conn->prepare("INSERT INTO pacientes (nombre_paciente, apellido_paciente, empresa, est_paciente) VALUES (?, ?, ?, 1)");
-  $stmt_nuevo_pac->bind_param("sss", $nuevo_paciente_nombre, $nuevo_paciente_apellido, $empresa_null);
-  if ($stmt_nuevo_pac->execute()) {
-    $paciente = $conn->insert_id; // Usar el ID del nuevo paciente
-  } else {
-    $mensaje = "Error al crear el paciente.";
-  }
-  $stmt_nuevo_pac->close();
-} else {
-  $paciente = trim($_POST['paciente'] ?? '');
-}
-
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $productos_egreso = $_POST['productoEgreso'] ?? [];
-  $cantidades = $_POST['cantidadEgreso'] ?? [];
-  $lotes_egreso = $_POST['loteEgreso'] ?? [];
-  $paciente = trim($_POST['paciente'] ?? '');
-  $motivo = trim($_POST['motivo'] ?? '');
-  $total = count($productos_egreso);
-  $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
+    $productos_egreso = $_POST['productoEgreso'] ?? [];
+    $cantidades = $_POST['cantidadEgreso'] ?? [];
+    $lotes_egreso = $_POST['loteEgreso'] ?? [];
+    $total = count($productos_egreso);
+    $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
 
-  if ($total > 0 && !empty($paciente) && !empty($motivo)) {
-    $conn->begin_transaction();
-    try {
-      if ($id_usuario_actual === null) {
-        throw new Exception("ID de usuario no encontrado en la sesión.");
-      }
-
-      // 1. Crear la transacción en la tabla cabecera
-
-      $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, id_paciente, TIPO_TRANSAC) VALUES (?, ?, ?, 'E')");
-      $fecha_actual = date('Y-m-d H:i:s');
-      $stmt_cabecera->bind_param("sss", $fecha_actual, $motivo, $paciente);
-      if (!$stmt_cabecera->execute()) {
-        throw new Exception("Error al crear la cabecera de la transacción: " . $stmt_cabecera->error);
-      }
-      // 2. Obtener el ID numérico (COD_TRANSAC) recién creado
-      $cod_transac_id = $conn->insert_id;
-      $stmt_cabecera->close();
-
-      // Preparar las consultas para el bucle
-      $stmt_update_stock = $conn->prepare("UPDATE producto SET stock_act_prod = ? WHERE id_prooducto = ?");
-      $stmt_insert_kardex = $conn->prepare("INSERT INTO kardex (ID_PROODUCTO, COD_TRANSAC, ID_USUARIO, CANTIDAD) VALUES (?, ?, ?, ?)");
-      $stmt_update_lote = $conn->prepare("UPDATE lote SET CANTIDAD_LOTE = ? WHERE num_lote = ?");
-      $stmt_check_lote = $conn->prepare("SELECT NUM_LOTE, CANTIDAD_LOTE FROM lote WHERE NUM_LOTE = ? AND estado_lote = 1");
-
-      for ($i = 0; $i < $total; $i++) {
-        $id_producto = (int) $productos_egreso[$i];
-        $cantidad_egresada = (int) $cantidades[$i];
-        $num_lote = $lotes_egreso[$i]; // Tratar como string
-
-        // Verificar stock del lote con consulta preparada
-        $stmt_check_lote->bind_param("s", $num_lote);
-        $stmt_check_lote->execute();
-        $lote_res = $stmt_check_lote->get_result();
-
-        if ($lote_res->num_rows === 0) {
-          throw new Exception("Lote '{$num_lote}' no encontrado.");
-        }
-        $cantidad_lote_anterior = (int) $lote_res->fetch_assoc()['CANTIDAD_LOTE'];
-
-        if ($cantidad_lote_anterior < $cantidad_egresada) {
-          throw new Exception("Stock insuficiente en el lote '{$num_lote}'. Disponibles: {$cantidad_lote_anterior}");
-        }
-
-        // Actualizar stock del lote
-        $nueva_cantidad_lote = $cantidad_lote_anterior - $cantidad_egresada;
-        $stmt_update_lote->bind_param("is", $nueva_cantidad_lote, $num_lote);
-        if (!$stmt_update_lote->execute()) {
-          throw new Exception("Error al actualizar stock del lote '{$num_lote}': " . $stmt_update_lote->error);
-        }
-
-        // Verificar stock del producto
-        $stock_res = $conn->query("SELECT stock_act_prod FROM producto WHERE id_prooducto = $id_producto FOR UPDATE");
-        if (!$stock_res || $stock_res->num_rows === 0)
-          throw new Exception("Producto no encontrado.");
-
-        $stock_anterior = (int) $stock_res->fetch_assoc()['stock_act_prod'];
-        if ($stock_anterior < $cantidad_egresada)
-          throw new Exception("Stock insuficiente para el producto.");
-
-        // Actualizar stock del producto
-        $stock_nuevo = $stock_anterior - $cantidad_egresada;
-        $stmt_update_stock->bind_param("ii", $stock_nuevo, $id_producto);
-        if (!$stmt_update_stock->execute())
-          throw new Exception("Error al actualizar stock: " . $stmt_update_stock->error);
-
-        // Registrar en Kardex
-        $stmt_insert_kardex->bind_param("iiii", $id_producto, $cod_transac_id, $id_usuario_actual, $cantidad_egresada);
-        if (!$stmt_insert_kardex->execute()) {
-          throw new Exception("Error al registrar en kardex: " . $stmt_insert_kardex->error);
-        }
-      }
-
-      $stmt_update_stock->close();
-      $stmt_insert_kardex->close();
-      $stmt_update_lote->close();
-      $stmt_check_lote->close();
-      $conn->commit();
-      $mensaje = '<div class="alert alert-success text-center">Egreso procesado correctamente.</div>';
-
-    } catch (Exception $e) {
-      $conn->rollback();
-      $mensaje = '<div class="alert alert-danger text-center"><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</div>';
+    if ($tipo === 'botiquin') {
+        $paciente = null;
+        $motivo = 'Botiquín';
+    } else {
+        $paciente = trim($_POST['paciente'] ?? '');
+        $motivo = trim($_POST['motivo'] ?? '');
     }
-  } else {
-    $mensaje = '<div class="alert alert-warning text-center">Debe agregar productos, especificar el nombre del paciente y el motivo.</div>';
-  }
+
+    $valid = $total > 0 && $id_usuario_actual !== null;
+    if ($tipo === 'normal') {
+        $valid = $valid && !empty($paciente) && !empty($motivo);
+    }
+
+    if ($valid) {
+        $conn->begin_transaction();
+        try {
+            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, id_paciente, TIPO_TRANSAC) VALUES (?, ?, ?, 'E')");
+            $fecha_actual = date('Y-m-d H:i:s');
+            $stmt_cabecera->bind_param("sss", $fecha_actual, $motivo, $paciente);
+            if (!$stmt_cabecera->execute()) {
+                throw new Exception("Error al crear la cabecera de la transacción: " . $stmt_cabecera->error);
+            }
+            $cod_transac_id = $conn->insert_id;
+            $stmt_cabecera->close();
+
+            $stmt_update_stock = $conn->prepare("UPDATE producto SET stock_act_prod = ? WHERE id_prooducto = ?");
+            $stmt_insert_kardex = $conn->prepare("INSERT INTO kardex (ID_PROODUCTO, COD_TRANSAC, ID_USUARIO, CANTIDAD) VALUES (?, ?, ?, ?)");
+            $stmt_update_lote = $conn->prepare("UPDATE lote SET CANTIDAD_LOTE = ? WHERE num_lote = ?");
+            $stmt_check_lote = $conn->prepare("SELECT NUM_LOTE, CANTIDAD_LOTE FROM lote WHERE NUM_LOTE = ? AND estado_lote = 1");
+
+            for ($i = 0; $i < $total; $i++) {
+                $id_producto = (int)$productos_egreso[$i];
+                $cantidad_egresada = (int)$cantidades[$i];
+                $num_lote = $lotes_egreso[$i];
+
+                $stmt_check_lote->bind_param("s", $num_lote);
+                $stmt_check_lote->execute();
+                $lote_res = $stmt_check_lote->get_result();
+
+                if ($lote_res->num_rows === 0) {
+                    throw new Exception("Lote '{$num_lote}' no encontrado.");
+                }
+                $cantidad_lote_anterior = (int)$lote_res->fetch_assoc()['CANTIDAD_LOTE'];
+
+                if ($cantidad_lote_anterior < $cantidad_egresada) {
+                    throw new Exception("Stock insuficiente en el lote '{$num_lote}'. Disponibles: {$cantidad_lote_anterior}");
+                }
+
+                $nueva_cantidad_lote = $cantidad_lote_anterior - $cantidad_egresada;
+                $stmt_update_lote->bind_param("is", $nueva_cantidad_lote, $num_lote);
+                if (!$stmt_update_lote->execute()) {
+                    throw new Exception("Error al actualizar stock del lote '{$num_lote}': " . $stmt_update_lote->error);
+                }
+
+                $stock_res = $conn->query("SELECT stock_act_prod FROM producto WHERE id_prooducto = $id_producto FOR UPDATE");
+                if (!$stock_res || $stock_res->num_rows === 0)
+                    throw new Exception("Producto no encontrado.");
+
+                $stock_anterior = (int)$stock_res->fetch_assoc()['stock_act_prod'];
+                if ($stock_anterior < $cantidad_egresada)
+                    throw new Exception("Stock insuficiente para el producto.");
+
+                $stock_nuevo = $stock_anterior - $cantidad_egresada;
+                $stmt_update_stock->bind_param("ii", $stock_nuevo, $id_producto);
+                if (!$stmt_update_stock->execute())
+                    throw new Exception("Error al actualizar stock: " . $stmt_update_stock->error);
+
+                $stmt_insert_kardex->bind_param("iiii", $id_producto, $cod_transac_id, $id_usuario_actual, $cantidad_egresada);
+                if (!$stmt_insert_kardex->execute()) {
+                    throw new Exception("Error al registrar en kardex: " . $stmt_insert_kardex->error);
+                }
+            }
+
+            $stmt_update_stock->close();
+            $stmt_insert_kardex->close();
+            $stmt_update_lote->close();
+            $stmt_check_lote->close();
+            $conn->commit();
+            $mensaje = '<div class="alert alert-success text-center">Egreso procesado correctamente.</div>';
+
+        } catch (Exception $e) {
+            $conn->rollback();
+            $mensaje = '<div class="alert alert-danger text-center"><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</div>';
+        }
+    } else {
+        $mensaje = '<div class="alert alert-warning text-center">Debe agregar productos' . ($tipo === 'normal' ? ', especificar el nombre del paciente y el motivo.' : '.') . '</div>';
+    }
 }
 $conn->close();
 ?>
@@ -182,6 +165,7 @@ $conn->close();
       echo $mensaje; ?>
     <form method="POST" id="formEgresos">
       <!-- Ingreso del Nombre del paciente -->
+      <?php if ($tipo === 'normal'): ?>
       <div class="mb-3">
         <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
         <select name="paciente" id="paciente" class="form-select" required>
@@ -199,6 +183,7 @@ $conn->close();
         <input type="text" class="form-control" id="motivo" name="motivo" placeholder="Ingrese el motivo del egreso"
           required>
       </div>
+      <?php endif; ?>
 
       <div class="card shadow-sm">
         <div class="card-body">

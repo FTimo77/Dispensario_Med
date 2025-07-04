@@ -9,16 +9,41 @@ if (!isset($_SESSION['usuario']) && !isset($_SESSION['bodega'])) {
 }
 
 require_once 'config/conexion.php';
-// El archivo producto_model.php no es estrictamente necesario aquí si solo vamos a consultar lotes directamente,
-// pero lo mantengo por si tus funciones de utilidad para productos aún se usan en otras partes de tu app.
-// require_once 'includes/producto_model.php'; 
 
-// Conexión
 $conexion = new Conexion();
 $conn = $conexion->connect();
 
-$lotes = []; // Inicializamos la variable lotes
+$lotes = [];
+$mensaje = "";
+$mensaje_acciones = "";
 
+// Filtro de fechas
+$fecha_inicio = $_GET['fecha_inicio'] ?? '';
+$fecha_fin = $_GET['fecha_fin'] ?? '';
+$where_fecha = '';
+if ($fecha_inicio && $fecha_fin) {
+    $where_fecha = " AND l.FECHA_ING BETWEEN '" . $conn->real_escape_string($fecha_inicio) . "' AND '" . $conn->real_escape_string($fecha_fin) . "'";
+}
+
+// Tipo de reporte: 'general' o 'minimos'
+$tipo = $_GET['tipo'] ?? 'general';
+
+// Configuración según el tipo de reporte
+if ($tipo === 'minimos') {
+    $titulo = "Reporte Existencias mínimas";
+    $extra_where = " AND l.CANTIDAD_LOTE = p.stock_min_prod";
+    $mostrar_stock_actual = true;
+    $mostrar_estado_lote = false;
+    $mostrar_estado_prod = true;
+} else {
+    $titulo = "Reporte General de Lotes de Productos";
+    $extra_where = "";
+    $mostrar_stock_actual = true;
+    $mostrar_estado_lote = true;
+    $mostrar_estado_prod = false;
+}
+
+// Consulta SQL
 $sql_lotes = "
     SELECT
         l.NUM_LOTE, 
@@ -26,9 +51,11 @@ $sql_lotes = "
         l.FECH_VENC, 
         l.FECH_FABRI, 
         l.FECHA_ING,
+        l.ESTADO_LOTE,
         p.NOM_PROD, 
         p.PRESENTACION_PROD, 
         p.stock_min_prod,
+        p.stock_act_prod,
         p.estado_prod,
         p.CODIGO_BODEGA,
         c.nombre_cat
@@ -40,8 +67,9 @@ $sql_lotes = "
         categoria c ON p.ID_CATEGORIA = c.id_categoria
     WHERE 
         p.estado_prod = 1 
-        AND p.CODIGO_BODEGA = " . $_SESSION['bodega'] . "
-        AND l.CANTIDAD_LOTE = p.stock_min_prod
+        AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
+        $extra_where
+        $where_fecha
     ORDER BY 
         l.FECHA_ING DESC
 ";
@@ -53,13 +81,8 @@ if ($res_lotes) {
         $lotes[] = $row;
     }
 } else {
-    // Si hay un error en la consulta, puedes manejarlo aquí
     $mensaje = "<div class='alert alert-danger text-center'>Error al cargar los lotes: " . $conn->error . "</div>";
 }
-
-// Mensaje de éxito o error (para acciones futuras si se reincorporan)
-$mensaje_acciones = "";
-
 
 $conn->close();
 ?>
@@ -69,7 +92,7 @@ $conn->close();
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Existencias minimas</title>
+    <title><?php echo $titulo; ?></title>
     <link rel="icon" href="./assets/icons/capsule-pill.svg" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="css/style.css" />
@@ -82,13 +105,32 @@ $conn->close();
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0 px-3 py-2 rounded"
                 style="background: rgba(255,255,255,0.85); box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-                Reporte Existencias minimas
+                <?php echo $titulo; ?>
             </h2>
         </div>
+        <!-- Filtro de fechas -->
+        <form class="row g-3 mb-4" method="get">
+            <input type="hidden" name="tipo" value="<?php echo htmlspecialchars($tipo); ?>">
+            <div class="col-auto">
+                <label for="fecha_inicio" class="col-form-label">Desde:</label>
+            </div>
+            <div class="col-auto">
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="<?php echo htmlspecialchars($fecha_inicio); ?>">
+            </div>
+            <div class="col-auto">
+                <label for="fecha_fin" class="col-form-label">Hasta:</label>
+            </div>
+            <div class="col-auto">
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="<?php echo htmlspecialchars($fecha_fin); ?>">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+            </div>
+        </form>
         <?php if (!empty($mensaje)): ?>
             <div class="alert alert-info text-center"><?php echo $mensaje; ?></div>
         <?php endif; ?>
-        <?php if (!empty($mensaje_acciones)): // Para mensajes de eliminar, si los reincorporas ?>
+        <?php if (!empty($mensaje_acciones)): ?>
             <div class="alert alert-info text-center"><?php echo $mensaje_acciones; ?></div>
         <?php endif; ?>
 
@@ -103,13 +145,20 @@ $conn->close();
                                 <th>Producto</th>
                                 <th>Presentación</th>
                                 <th>Categoría</th>
-                                <th>Stock Actual</th>
+                                <?php if ($mostrar_stock_actual): ?>
+                                    <th>Stock Actual</th>
+                                <?php endif; ?>
                                 <th>Stock Mínimo</th>
                                 <th>Fecha Fabricación</th>
                                 <th>Fecha Vencimiento</th>
                                 <th>Fecha Ingreso Lote</th>
                                 <th>Bodega</th>
-                                <th>Estado Producto</th>
+                                <?php if ($mostrar_estado_lote): ?>
+                                    <th>Estado Lote</th>
+                                <?php endif; ?>
+                                <?php if ($mostrar_estado_prod): ?>
+                                    <th>Estado Producto</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -125,17 +174,28 @@ $conn->close();
                                         <td><?php echo htmlspecialchars($lote['NOM_PROD']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['PRESENTACION_PROD']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['nombre_cat']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['CANTIDAD_LOTE']); ?></td>
+                                        <?php if ($mostrar_stock_actual): ?>
+                                            <td><?php echo htmlspecialchars($lote['CANTIDAD_LOTE']); ?></td>
+                                        <?php endif; ?>
                                         <td><?php echo htmlspecialchars($lote['stock_min_prod']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['FECH_FABRI']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['FECH_VENC']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['FECHA_ING']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['CODIGO_BODEGA']); ?></td>
-                                        <td>
-                                            <?php
-                                            echo ($lote['estado_prod'] == 1) ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
-                                            ?>
-                                        </td>
+                                        <td><?php echo htmlspecialchars($_SESSION['nombre_bodega']); ?></td>
+                                        <?php if ($mostrar_estado_lote): ?>
+                                            <td>
+                                                <?php
+                                                echo ($lote['ESTADO_LOTE'] == 1) ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
+                                                ?>
+                                            </td>
+                                        <?php endif; ?>
+                                        <?php if ($mostrar_estado_prod): ?>
+                                            <td>
+                                                <?php
+                                                echo ($lote['estado_prod'] == 1) ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-danger">Inactivo</span>';
+                                                ?>
+                                            </td>
+                                        <?php endif; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             <?php endif; ?>

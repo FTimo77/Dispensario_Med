@@ -72,12 +72,12 @@
               </a>
               <ul class="dropdown-menu">
                 <li>
-                  <a class="dropdown-item" href="egreso.php">
+                  <a class="dropdown-item" href="egreso_unificado.php?tipo=normal">
                     <i class="bi bi-person-check"></i> Por Atención
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="egreso_botiquin.php">
+                  <a class="dropdown-item" href="egreso_unificado.php?tipo=botiquin">
                     <i class="bi bi-prescription2"></i> Por Botiquín
                   </a>
                 </li>
@@ -93,13 +93,17 @@
           </a>
           <ul class="dropdown-menu" aria-labelledby="reportesDropdown">
             <li>
-              <a class="dropdown-item" href="existencias_min.php"><i class="bi bi-exclamation-circle"></i> Existencias Mínimas</a>
+              <a class="dropdown-item" href="./reporte_lotes.php?tipo=minimos">
+                <i class="bi bi-exclamation-circle"></i> Existencias Mínimas
+              </a>
             </li>
             <li>
               <a class="dropdown-item" href="#"><i class="bi bi-hourglass-split"></i> Productos por Caducar</a>
             </li>
             <li>
-              <a class="dropdown-item" href="./general_prod.php"><i class="bi bi-list-ul"></i> General de productos</a>
+              <a class="dropdown-item" href="./reporte_lotes.php?tipo=general">
+                <i class="bi bi-list-ul"></i> General de productos
+              </a>
             </li>
           </ul>
         </li>
