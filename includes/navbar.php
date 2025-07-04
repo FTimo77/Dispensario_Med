@@ -20,41 +20,33 @@
               </a>
             </li>
           </ul>
-        </li>
-        <!-- Registro de Datos -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button" data-bs-toggle="dropdown"
-            aria-expanded="false">
-            <i class="bi bi-pencil-square"></i> Registro de Datos
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="registroDropdown">
-            <li>
-              <h6 class="dropdown-header">Administración</h6>
-            </li>
-            <li>
-              <a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a>
-            </li>
-            </li>
-            <li>
-              <a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a>
-            </li>
-            <li>
-              <hr class="dropdown-divider" />
-            </li>
-            <li>
-              <h6 class="dropdown-header">Inventario</h6>
-            </li>
-            <li>
-              <a class="dropdown-item" href="agregar_bodega.php"><i class="bi bi-building"></i> Bodega</a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="producto.php"><i class="bi bi-box"></i> Productos</a>
-            </li>
-          </ul>
-        </li>
+        </li><?php 
+$nombre_rol = $_SESSION["nombre_rol"];
+
+if ($nombre_rol === 'admin' || $nombre_rol === 'doctor'): ?>
+  <li class="nav-item dropdown">
+    <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button" data-bs-toggle="dropdown"
+      aria-expanded="false">
+      <i class="bi bi-pencil-square"></i> Registro de Datos
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="registroDropdown">
+      
+      <?php if ($nombre_rol === 'admin'): ?>
+        <li><h6 class="dropdown-header">Administración</h6></li>
+        <li><a class="dropdown-item" href="users.php"><i class="bi bi-people"></i> Usuarios</a></li>
+        <li><a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a></li>
+        <li><a class="dropdown-item" href="rol_user.php"><i class="bi bi-people"></i> Roles</a></li>
+        <li><hr class="dropdown-divider" /></li>
+      <?php endif; ?>
+
+      <li><h6 class="dropdown-header">Inventario</h6></li>
+      <li><a class="dropdown-item" href="agregar_bodega.php"><i class="bi bi-building"></i> Bodega</a></li>
+      <li><a class="dropdown-item" href="producto.php"><i class="bi bi-box"></i> Productos</a></li>
+
+    </ul>
+  </li>
+<?php endif; ?>
+
         <!-- Transacciones -->
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="transaccionesDropdown" role="button"
