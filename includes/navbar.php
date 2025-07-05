@@ -20,6 +20,7 @@
               </a>
             </li>
           </ul>
+          <!-- Registro de datos -->
         </li><?php
         $nombre_rol = $_SESSION["nombre_rol"];
 
