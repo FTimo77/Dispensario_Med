@@ -33,14 +33,6 @@ CREATE TABLE `bodega` (
   `ESTADO_BODEGA` char(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Volcado de datos para la tabla `bodega`
---
-
-INSERT INTO `bodega` (`CODIGO_BODEGA`, `DESCRIPCION`, `ESTADO_BODEGA`) VALUES
-(1, 'Quito Norte', '1');
-
--- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `cabecera`
@@ -170,7 +162,7 @@ CREATE TABLE `rol_usuario` (
 --
 
 INSERT INTO `rol_usuario` (`COD_ROL`, `NOMBRE_ROL`, `ESTADO_ROL`) VALUES
-(1, 'admin', '1');
+(1, 'admin', '1'),
 (2, 'doctor', '1');
 
 -- --------------------------------------------------------
@@ -183,7 +175,7 @@ CREATE TABLE `usuario` (
   `ID_USUARIO` int(11) NOT NULL,
   `COD_ROL` int(11) DEFAULT NULL,
   `NOMBRE_USUARIO` char(20) NOT NULL,
-  `PASS_USUARIO` char(16) NOT NULL,
+  `PASS_USUARIO` char(60) NOT NULL,
   `ESTADO_USUARIO` char(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
