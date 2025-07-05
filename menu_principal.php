@@ -117,40 +117,47 @@ WHERE
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($resultado->num_rows == 0): ?>
-                                <tr>
-                                    <td colspan="8" class="text-center">No hay lotes próximos a vencer.</td>
-                                </tr>
-                            <?php else:
-                                $i = 0;
-                                while ($row = $resultado->fetch_assoc()): ?>
-                                    <tr>
-                                        <td style="font-weight: bold;
-                                            <?php
-                                                if ($row['MESES'] < 0) {
-                                                    echo 'background-color: #dc3545; color: #fff;'; // Rojo fuerte y texto blanco para "Caducado"
-                                                } elseif ($row['MESES'] < 3) {
-                                                    echo 'background-color: #ffcccc;'; // Rojo claro
-                                                } elseif ($row['MESES'] < 6) {
-                                                    echo 'background-color: #fff3cd;'; // Amarillo claro
-                                                } elseif ($row['MESES'] < 9) {
-                                                    echo 'background-color: #d4edda;'; // Verde claro
-                                                }
-                                                ?>">
-                                                                                  <?php
-                                            if ($row['MESES'] < 0) {
-                                                echo 'Caducado';
-                                            } else {
-                                                echo htmlspecialchars($row['MESES']);
-                                            }
-                                            ?>
-                                        </td>
-                                    </tr>
-                                    <?php
-                                    $i++;
-                                endwhile;
-                            endif; ?>
-                        </tbody>
+    <?php if ($resultado->num_rows == 0): ?>
+        <tr>
+            <td colspan="7" class="text-center">No hay lotes próximos a vencer.</td>
+        </tr>
+    <?php else:
+        $i = 1; // Iniciar contador en 1 para la numeración
+        while ($row = $resultado->fetch_assoc()):
+        ?>
+            <tr>
+                <td><?php echo $i; ?></td>
+                <td><?php echo htmlspecialchars($row['NOMBRE_CAT']); ?></td>
+                <td><?php echo htmlspecialchars($row['NOM_PROD']); ?></td>
+                <td><?php echo htmlspecialchars($row['STOCK_ACT_PROD']); ?></td>
+                <td><?php echo htmlspecialchars($row['NUM_LOTE']); ?></td>
+                <td><?php echo htmlspecialchars($row['FECH_VENC']); ?></td>
+                <td style="font-weight: bold;
+                    <?php
+                        if ($row['MESES'] < 0) {
+                            echo 'background-color: #dc3545; color: #fff;'; // Rojo fuerte y texto blanco para "Caducado"
+                        } elseif ($row['MESES'] < 3) {
+                            echo 'background-color: #ffcccc;'; // Rojo claro
+                        } elseif ($row['MESES'] < 6) {
+                            echo 'background-color: #fff3cd;'; // Amarillo claro
+                        } elseif ($row['MESES'] < 9) {
+                            echo 'background-color: #d4edda;'; // Verde claro
+                        }
+                    ?>">
+                    <?php
+                        if ($row['MESES'] < 0) {
+                            echo 'Caducado';
+                        } else {
+                            echo htmlspecialchars($row['MESES']);
+                        }
+                    ?>
+                </td>
+            </tr>
+            <?php
+            $i++;
+        endwhile;
+    endif; ?>
+</tbody>
                     </table>
                 </div>
             </div>
