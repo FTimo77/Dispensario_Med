@@ -171,6 +171,7 @@ CREATE TABLE `rol_usuario` (
 
 INSERT INTO `rol_usuario` (`COD_ROL`, `NOMBRE_ROL`, `ESTADO_ROL`) VALUES
 (1, 'admin', '1');
+(2, 'doctor', '1');
 
 -- --------------------------------------------------------
 
@@ -187,12 +188,6 @@ CREATE TABLE `usuario` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Volcado de datos para la tabla `usuario`
---
-
-INSERT INTO `usuario` (`ID_USUARIO`, `COD_ROL`, `NOMBRE_USUARIO`, `PASS_USUARIO`, `ESTADO_USUARIO`) VALUES
-(1, 1, 'admin', 'admin', '1');
-
 --
 -- Índices para tablas volcadas
 --

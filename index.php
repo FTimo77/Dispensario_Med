@@ -9,6 +9,31 @@ if (isset($_GET['error']) && $_GET['error'] == 1) {
     $intento_login = true;
 }
 
+// --- NUEVO BLOQUE: Verificar si existen usuarios y bodegas, si no, redirigir ---
+require_once 'config/conexion.php';
+require_once 'includes/usuario_model.php';
+require_once 'includes/bodega_model.php';
+
+$conexion = new Conexion();
+$conn_check = $conexion->connect();
+
+// Verifica usuarios
+$res_usuarios = $conn_check->query("SELECT COUNT(*) AS total FROM usuario");
+$row_usuarios = $res_usuarios ? $res_usuarios->fetch_assoc() : ['total' => 0];
+$hay_usuarios = intval($row_usuarios['total']) > 0;
+
+// Verifica bodegas
+$res_bodegas = $conn_check->query("SELECT COUNT(*) AS total FROM bodega");
+$row_bodegas = $res_bodegas ? $res_bodegas->fetch_assoc() : ['total' => 0];
+$hay_bodegas = intval($row_bodegas['total']) > 0;
+
+// SOLO redirige si NO hay usuarios Y NO hay bodegas
+if (!$hay_usuarios) {
+    header("Location: primer_ingreso.php");
+    exit;
+}
+// --- FIN NUEVO BLOQUE ---
+
 // Procesamiento del login
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
     $intento_login = true;

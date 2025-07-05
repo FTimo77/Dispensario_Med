@@ -17,14 +17,34 @@ $mensaje = "";
 // Acción de dar de baja
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['dar_baja_lote'])) {
     $num_lote_baja = $_POST['dar_baja_lote'];
-    $stmt_baja = $conn->prepare("UPDATE lote SET ESTADO_LOTE = 0 WHERE NUM_LOTE = ?");
-    $stmt_baja->bind_param("s", $num_lote_baja);
-    if ($stmt_baja->execute()) {
-        $mensaje = "<div class='alert alert-success text-center'>Lote $num_lote_baja dado de baja correctamente.</div>";
+
+    // 1. Obtener cantidad y producto del lote
+    $stmt_info = $conn->prepare("SELECT CANTIDAD_LOTE, ID_PROODUCTO FROM lote WHERE NUM_LOTE = ?");
+    $stmt_info->bind_param("s", $num_lote_baja);
+    $stmt_info->execute();
+    $stmt_info->bind_result($cantidad_lote, $id_producto);
+    if ($stmt_info->fetch()) {
+        $stmt_info->close();
+
+        // 2. Restar la cantidad al stock del producto
+        $stmt_update_prod = $conn->prepare("UPDATE producto SET stock_act_prod = stock_act_prod - ? WHERE id_prooducto = ?");
+        $stmt_update_prod->bind_param("ii", $cantidad_lote, $id_producto);
+        $stmt_update_prod->execute();
+        $stmt_update_prod->close();
+
+        // 3. Dar de baja el lote
+        $stmt_baja = $conn->prepare("UPDATE lote SET ESTADO_LOTE = 0 WHERE NUM_LOTE = ?");
+        $stmt_baja->bind_param("s", $num_lote_baja);
+        if ($stmt_baja->execute()) {
+            $mensaje = "<div class='alert alert-success text-center'>Lote $num_lote_baja dado de baja correctamente y stock actualizado.</div>";
+        } else {
+            $mensaje = "<div class='alert alert-danger text-center'>Error al dar de baja el lote: " . $stmt_baja->error . "</div>";
+        }
+        $stmt_baja->close();
     } else {
-        $mensaje = "<div class='alert alert-danger text-center'>Error al dar de baja el lote: " . $stmt_baja->error . "</div>";
+        $mensaje = "<div class='alert alert-danger text-center'>No se pudo obtener la información del lote.</div>";
+        $stmt_info->close();
     }
-    $stmt_baja->close();
 }
 
 $fecha_hoy = date('Y-m-d');

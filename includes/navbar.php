@@ -42,6 +42,8 @@
                 <li>
                   <hr class="dropdown-divider" />
                 </li>
+              <?php elseif ($nombre_rol === 'doctor'): ?>
+                <li><a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a></li>
               <?php endif; ?>
 
               <li>
