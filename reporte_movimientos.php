@@ -178,6 +178,12 @@ $conn->close();
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
+                        <!-- Dentro de <div class="card-body">, después de la tabla -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button id="btnExportPDF" class="btn btn-success">
+                            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+                        </button>
+                        </div>
                     </table>
                 </div>
             </div>
@@ -217,6 +223,93 @@ $conn->close();
     <script src="js/models.js"></script>
     <script src="js/navbar-submenu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Boton exportar pdf -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+  const { jsPDF } = window.jspdf;
+</script>
+<script>
+document.getElementById('btnExportPDF').addEventListener('click', function() {
+    // Configuración del PDF
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm'
+    });
+
+    // Título y fecha
+    const title = "Reporte de Movimientos";
+    doc.setFontSize(16);
+    doc.text(title, 15, 15);
+    doc.setFontSize(10);
+    doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 15, 22);
+    doc.text(`Bodega: <?php echo $_SESSION['nombre_bodega']; ?>`, 15, 28);
+    
+    // Filtros aplicados
+    <?php if($fecha_inicio && $fecha_fin): ?>
+        doc.text(`Período: ${"<?php echo $fecha_inicio; ?>"} al ${"<?php echo $fecha_fin; ?>"}`, 15, 34);
+    <?php endif; ?>
+    <?php if($tipo_movimiento): ?>
+        doc.text(`Tipo: ${"<?php echo ($tipo_movimiento === 'I') ? 'Ingresos' : 'Egresos'; ?>"}`, 100, 34);
+    <?php endif; ?>
+
+    // Datos de la tabla desde PHP
+    const headers = [
+        "#",
+        "Tipo",
+        "Producto",
+        "Fecha",
+        "Motivo",
+        "Cantidad"
+    ];
+
+    const data = <?php echo json_encode($movimientos); ?>.map((item, index) => [
+        index + 1,
+        item.TIPO_TRANSAC === 'I' ? 'Ingreso' : 'Egreso',
+        item.NOM_PROD,
+        item.FECHA_TRANSC,
+        item.MOTIVO,
+        item.CANTIDAD
+    ]);
+
+    // Generar tabla
+    doc.autoTable({
+        head: [headers],
+        body: data,
+        startY: 40,
+        margin: { left: 10 },
+        styles: {
+            fontSize: 8,
+            cellPadding: 1.5,
+            overflow: 'linebreak'
+        },
+        columnStyles: {
+            0: { cellWidth: 8 },   // #
+            1: { cellWidth: 15 },  // Tipo
+            2: { cellWidth: 35 },  // Producto
+            3: { cellWidth: 20 },  // Fecha
+            4: { cellWidth: 40 },  // Motivo
+            5: { cellWidth: 15 }   // Cantidad
+        },
+        didDrawCell: (data) => {
+            // Colorear celdas de tipo
+            if (data.column.index === 1) {
+                const cellValue = data.cell.raw;
+                if (cellValue === 'Ingreso') {
+                    doc.setFillColor(200, 230, 200); // Verde claro
+                } else if (cellValue === 'Egreso') {
+                    doc.setFillColor(255, 200, 200); // Rojo claro
+                }
+                doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+                doc.setTextColor(0, 0, 0);
+                doc.text(cellValue, data.cell.x + 2, data.cell.y + 5);
+            }
+        }
+    });
+
+    doc.save(`Reporte_Movimientos_${new Date().toISOString().slice(0,10)}.pdf`);
+});
+</script>
     <div class="wave-container">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"
             style="display:block; width:100vw; height:auto; margin:0; padding:0;">

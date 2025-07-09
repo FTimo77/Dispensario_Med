@@ -140,7 +140,7 @@ $conn->close();
         <!-- CAMBIO: Campo para la referencia del ingreso -->
         <div class="mb-3">
             <label for="referenciaIngreso" class="form-label fw-bold">Referencia (Proveedor, Factura, etc.)</label>
-            <input type="text" class="form-control" id="referenciaIngreso" name="referenciaIngreso" required placeholder="Ingrese una referencia para el ingreso">
+            <input type="text" class="form-control uppercase-input" id="referenciaIngreso" name="referenciaIngreso" required placeholder="Ingrese una referencia para el ingreso" oninput="this.value = this.value.toUpperCase()" />
         </div>
 
         <div class="card shadow-sm">

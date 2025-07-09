@@ -215,6 +215,12 @@ $conn->close();
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
+                        <!-- Dentro de <div class="card-body">, después de la tabla -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button id="btnExportPDF" class="btn btn-success">
+                            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+                        </button>
+                        </div>
                     </table>
                 </div>
             </div>
@@ -253,6 +259,89 @@ $conn->close();
     <script src="js/models.js"></script>
     <script src="js/navbar-submenu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Scrips para Exportar pdf -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+  const { jsPDF } = window.jspdf;
+</script>
+<script>
+document.getElementById('btnExportPDF').addEventListener('click', function() {
+    // Configuración del PDF
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm'
+    });
+
+    // Título y fecha
+    const title = "Reporte de Recetas Emitidas";
+    doc.setFontSize(16);
+    doc.text(title, 15, 15);
+    doc.setFontSize(10);
+    doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 15, 22);
+    doc.text(`Bodega: <?php echo $_SESSION['nombre_bodega']; ?>`, 15, 28);
+    
+    // Filtros aplicados
+    <?php if($fecha_inicio && $fecha_fin): ?>
+        doc.text(`Período: ${"<?php echo $fecha_inicio; ?>"} al ${"<?php echo $fecha_fin; ?>"}`, 15, 34);
+    <?php endif; ?>
+    <?php if($empresa_seleccionada): ?>
+        doc.text(`Empresa: ${"<?php echo $empresa_seleccionada; ?>"}`, 100, 34);
+    <?php endif; ?>
+
+    // Datos de la tabla desde PHP
+    const headers = [
+        "#",
+        "Empresa",
+        "Paciente",
+        "Producto",
+        "Cantidad",
+        "Motivo",
+        "Fecha"
+    ];
+
+    const data = <?php echo json_encode($recetas); ?>.map((item, index) => [
+        index + 1,
+        item.empresa,
+        `${item.nombre_paciente} ${item.apellido_paciente}`,
+        item.NOM_PROD,
+        item.CANTIDAD,
+        item.MOTIVO,
+        item.FECHA_TRANSC
+    ]);
+
+    // Generar tabla
+    doc.autoTable({
+        head: [headers],
+        body: data,
+        startY: 40,
+        margin: { left: 10 },
+        styles: {
+            fontSize: 8,
+            cellPadding: 1.5,
+            overflow: 'linebreak',
+            valign: 'middle'
+        },
+        columnStyles: {
+            0: { cellWidth: 8 },   // #
+            1: { cellWidth: 25 },  // Empresa
+            2: { cellWidth: 30 },  // Paciente
+            3: { cellWidth: 30 },  // Producto
+            4: { cellWidth: 15 },  // Cantidad
+            5: { cellWidth: 30 },  // Motivo
+            6: { cellWidth: 20 }   // Fecha
+        },
+        didParseCell: function(data) {
+            // Ajustar altura de fila para contenido largo
+            if (data.column.index === 5) { // Columna Motivo
+                data.cell.height = Math.max(10, data.cell.text.length / 30 * 5);
+            }
+        }
+    });
+
+    doc.save(`Reporte_Recetas_${new Date().toISOString().slice(0,10)}.pdf`);
+});
+</script>
     <div class="wave-container">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"
             style="display:block; width:100vw; height:auto; margin:0; padding:0;">

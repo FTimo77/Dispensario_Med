@@ -180,8 +180,8 @@ $conn->close();
       <!-- Campo para el motivo del egreso -->
       <div class="mb-3">
         <label for="motivo" class="form-label fw-bold">Motivo del Egreso</label>
-        <input type="text" class="form-control" id="motivo" name="motivo" placeholder="Ingrese el motivo del egreso"
-          required>
+        <input type="text" class="form-control uppercase-input" id="motivo" name="motivo" placeholder="Ingrese el motivo del egreso"
+          required oninput="this.value = this.value.toUpperCase()" />
       </div>
       <?php endif; ?>
 
