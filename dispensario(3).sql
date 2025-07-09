@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 04-07-2025 a las 17:10:11
+-- Tiempo de generación: 09-07-2025 a las 19:08:20
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -33,6 +33,7 @@ CREATE TABLE `bodega` (
   `ESTADO_BODEGA` char(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `cabecera`
@@ -46,6 +47,7 @@ CREATE TABLE `cabecera` (
   `id_paciente` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `categoria`
@@ -57,7 +59,8 @@ CREATE TABLE `categoria` (
   `ESTADO_CAT` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+-- --------------------------------------------------------
+
 --
 -- Estructura de tabla para la tabla `kardex`
 --
@@ -70,6 +73,7 @@ CREATE TABLE `kardex` (
   `CANTIDAD` decimal(5,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `log`
@@ -103,7 +107,7 @@ CREATE TABLE `lote` (
 --
 DELIMITER $$
 CREATE TRIGGER `lote_set_estado_al_actualizar` BEFORE UPDATE ON `lote` FOR EACH ROW BEGIN
-    IF NEW.CANTIDAD_LOTE <= 0 OR NEW.FECH_VENC < CURDATE() THEN
+    IF NEW.CANTIDAD_LOTE <= 0 THEN
         SET NEW.estado_lote = 0;
     END IF;
 END
@@ -130,7 +134,8 @@ CREATE TABLE `pacientes` (
   `est_paciente` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+-- --------------------------------------------------------
+
 --
 -- Estructura de tabla para la tabla `producto`
 --
@@ -146,7 +151,8 @@ CREATE TABLE `producto` (
   `ESTADO_PROD` int(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+-- --------------------------------------------------------
+
 --
 -- Estructura de tabla para la tabla `rol_usuario`
 --
@@ -179,7 +185,7 @@ CREATE TABLE `usuario` (
   `ESTADO_USUARIO` char(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
+
 --
 -- Índices para tablas volcadas
 --
@@ -262,7 +268,7 @@ ALTER TABLE `usuario`
 -- AUTO_INCREMENT de la tabla `bodega`
 --
 ALTER TABLE `bodega`
-  MODIFY `CODIGO_BODEGA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `CODIGO_BODEGA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `cabecera`
@@ -304,13 +310,13 @@ ALTER TABLE `producto`
 -- AUTO_INCREMENT de la tabla `rol_usuario`
 --
 ALTER TABLE `rol_usuario`
-  MODIFY `COD_ROL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `COD_ROL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Restricciones para tablas volcadas
