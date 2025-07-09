@@ -235,8 +235,21 @@ $conn->close();
             </div>
             <div class="col-12">
               <label for="presentacionproducto" class="form-label">Presentación del producto</label>
-              <input type="text" class="form-control" id="presentacionproducto" name="presentacionproducto"
-                placeholder="Ej. Caja de 6 unidades" required />
+              <select class="form-control" id="presentacionproducto" name="presentacionproducto" required>
+                <option value="">Seleccione una presentación</option>
+                <option value="SOLIDO ORAL">SOLIDO ORAL</option>
+                <option value="LIQUIDO ORAL">LIQUIDO ORAL</option>
+                <option value="SOLUCION PARENTAL">SOLUCION PARENTAL</option>
+                <option value="SOLUCION INYECTABLE">SOLUCION INYECTABLE</option>
+                <option value="SEMISOLIDO CUTANEO">SEMISOLIDO CUTANEO</option>
+                <option value="SOLIDO PARENTERAL">SOLIDO PARENTERAL</option>
+                <option value="SOLUCION OFTALMICA">SOLUCION OFTALMICA</option>
+                <option value="SEMISOLIDO OFTALMICO">SEMISOLIDO OFTALMICO</option>
+                <option value="SOLUCION OTICA">SOLUCION OTICA</option>
+                <option value="SOLUCION ORAL">SOLUCION ORAL</option>
+                <option value="SUSPENSION ORAL">SUSPENSION ORAL</option>
+                <option value="SUSPENSION OFTALMICA">SUSPENSION OFTALMICA</option>
+              </select>
             </div>
             <div class="col-12 d-flex align-items-end mb-2">
               <div style="flex:2;">
@@ -253,18 +266,6 @@ $conn->close();
                   <option value="L">L</option>
                   <option value="UI">UI</option>
                   <option value="mcg">mcg</option>
-                  <option value="tabletas">tabletas</option>
-                  <option value="cápsulas">cápsulas</option>
-                  <option value="ampollas">ampollas</option>
-                  <option value="sobres">sobres</option>
-                  <option value="frascos">frascos</option>
-                  <option value="viales">viales</option>
-                  <option value="dosis">dosis</option>
-                  <option value="gotas">gotas</option>
-                  <option value="parches">parches</option>
-                  <option value="supositorios">supositorios</option>
-                  <option value="spray">spray</option>
-                  <option value="otros">otros</option>
                 </select>
               </div>
             </div>
