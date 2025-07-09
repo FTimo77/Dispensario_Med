@@ -31,16 +31,18 @@ $tipo = $_GET['tipo'] ?? 'general';
 // Configuración según el tipo de reporte
 if ($tipo === 'minimos') {
     $titulo = "Reporte Existencias mínimas";
-    $extra_where = " AND l.CANTIDAD_LOTE = p.stock_min_prod";
+    $extra_where = " AND p.STOCK_ACT_PROD <= p.stock_min_prod";
     $mostrar_stock_actual = true;
     $mostrar_estado_lote = false;
     $mostrar_estado_prod = true;
+    $mostrar_lote = false; // No mostrar información de lotes
 } else {
     $titulo = "Reporte General de Lotes de Productos";
     $extra_where = "";
     $mostrar_stock_actual = true;
     $mostrar_estado_lote = true;
     $mostrar_estado_prod = false;
+    $mostrar_lote = true; // Mostrar información de lotes
 }
 
 // Obtener productos para el filtro
@@ -79,37 +81,65 @@ if ($orden_stock === 'asc') {
 }
 
 // Consulta SQL
-$sql_lotes = "
-    SELECT
-        l.NUM_LOTE, 
-        l.CANTIDAD_LOTE,
-        l.FECH_VENC, 
-        l.FECH_FABRI, 
-        l.FECHA_ING,
-        l.ESTADO_LOTE,
-        p.NOM_PROD, 
-        p.PRESENTACION_PROD, 
-        p.stock_min_prod,
-        p.stock_act_prod,
-        p.estado_prod,
-        p.CODIGO_BODEGA,
-        c.nombre_cat
-    FROM 
-        lote l 
-    INNER JOIN 
-        producto p ON l.ID_PROODUCTO = p.id_prooducto
-    INNER JOIN
-        categoria c ON p.ID_CATEGORIA = c.id_categoria
-    WHERE 
-        p.estado_prod = 1 
-        AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
-        $extra_where
-        $where_fecha
-        $where_producto
-        $where_categoria
-    ORDER BY 
-        $order_by_stock l.FECHA_ING DESC
-";
+if ($tipo === 'minimos') {
+    // Para el reporte de existencias mínimas, mostrar productos únicos
+    $sql_lotes = "
+        SELECT DISTINCT
+            p.id_prooducto,
+            p.NOM_PROD, 
+            p.PRESENTACION_PROD, 
+            p.stock_min_prod,
+            p.stock_act_prod,
+            p.estado_prod,
+            p.CODIGO_BODEGA,
+            c.nombre_cat
+        FROM 
+            producto p 
+        INNER JOIN
+            categoria c ON p.ID_CATEGORIA = c.id_categoria
+        WHERE 
+            p.estado_prod = 1 
+            AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
+            $extra_where
+            $where_producto
+            $where_categoria
+        ORDER BY 
+            p.NOM_PROD ASC
+    ";
+} else {
+    // Para el reporte general, mostrar lotes
+    $sql_lotes = "
+        SELECT
+            l.NUM_LOTE, 
+            l.CANTIDAD_LOTE,
+            l.FECH_VENC, 
+            l.FECH_FABRI, 
+            l.FECHA_ING,
+            l.ESTADO_LOTE,
+            p.NOM_PROD, 
+            p.PRESENTACION_PROD, 
+            p.stock_min_prod,
+            p.stock_act_prod,
+            p.estado_prod,
+            p.CODIGO_BODEGA,
+            c.nombre_cat
+        FROM 
+            lote l 
+        INNER JOIN 
+            producto p ON l.ID_PROODUCTO = p.id_prooducto
+        INNER JOIN
+            categoria c ON p.ID_CATEGORIA = c.id_categoria
+        WHERE 
+            p.estado_prod = 1 
+            AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
+            $extra_where
+            $where_fecha
+            $where_producto
+            $where_categoria
+        ORDER BY 
+            $order_by_stock l.FECHA_ING DESC
+    ";
+}
 
 $res_lotes = $conn->query($sql_lotes);
 
@@ -207,7 +237,9 @@ $conn->close();
                         <thead class="table-light">
                             <tr>
                                 <th>#</th>
-                                <th>Lote</th>
+                                <?php if ($mostrar_lote): ?>
+                                    <th>Lote</th>
+                                <?php endif; ?>
                                 <th>Producto</th>
                                 <th>Presentación</th>
                                 <th>Categoría</th>
@@ -215,9 +247,11 @@ $conn->close();
                                     <th>Stock Actual</th>
                                 <?php endif; ?>
                                 <th>Stock Mínimo</th>
-                                <th>Fecha Fabricación</th>
-                                <th>Fecha Vencimiento</th>
-                                <th>Fecha Ingreso Lote</th>
+                                <?php if ($mostrar_lote): ?>
+                                    <th>Fecha Fabricación</th>
+                                    <th>Fecha Vencimiento</th>
+                                    <th>Fecha Ingreso Lote</th>
+                                <?php endif; ?>
                                 <th>Bodega</th>
                                 <?php if ($mostrar_estado_lote): ?>
                                     <th>Estado Lote</th>
@@ -230,23 +264,32 @@ $conn->close();
                         <tbody>
                             <?php if (empty($lotes)): ?>
                                 <tr>
-                                    <td colspan="12" class="text-center">No hay lotes registrados para mostrar.</td>
+                                    <td colspan="<?php echo $mostrar_lote ? '12' : '6'; ?>" class="text-center">No hay <?php echo $tipo === 'minimos' ? 'productos con existencias mínimas' : 'lotes registrados'; ?> para mostrar.</td>
                                 </tr>
                             <?php else: ?>
                                 <?php foreach ($lotes as $i => $lote): ?>
                                     <tr>
                                         <td><?php echo $i + 1; ?></td>
-                                        <td><?php echo htmlspecialchars($lote['NUM_LOTE']); ?></td>
+                                        <?php if ($mostrar_lote): ?>
+                                            <td><?php echo htmlspecialchars($lote['NUM_LOTE']); ?></td>
+                                        <?php endif; ?>
                                         <td><?php echo htmlspecialchars($lote['NOM_PROD']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['PRESENTACION_PROD']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['nombre_cat']); ?></td>
                                         <?php if ($mostrar_stock_actual): ?>
-                                            <td><?php echo htmlspecialchars($lote['CANTIDAD_LOTE']); ?></td>
+                                            <td>
+                                                <?php 
+                                                $stock_mostrar = $mostrar_lote ? $lote['CANTIDAD_LOTE'] : $lote['stock_act_prod'];
+                                                echo htmlspecialchars($stock_mostrar); 
+                                                ?>
+                                            </td>
                                         <?php endif; ?>
                                         <td><?php echo htmlspecialchars($lote['stock_min_prod']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['FECH_FABRI']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['FECH_VENC']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['FECHA_ING']); ?></td>
+                                        <?php if ($mostrar_lote): ?>
+                                            <td><?php echo htmlspecialchars($lote['FECH_FABRI']); ?></td>
+                                            <td><?php echo htmlspecialchars($lote['FECH_VENC']); ?></td>
+                                            <td><?php echo htmlspecialchars($lote['FECHA_ING']); ?></td>
+                                        <?php endif; ?>
                                         <td><?php echo htmlspecialchars($_SESSION['nombre_bodega']); ?></td>
                                         <?php if ($mostrar_estado_lote): ?>
                                             <td>
@@ -336,36 +379,35 @@ document.getElementById('btnExportPDF').addEventListener('click', function() {
 
     // Datos de la tabla desde PHP
     const headers = [
-        "#",
-        "Lote",
+        "#"
+        <?php if ($mostrar_lote): ?>, "Lote"<?php endif; ?>,
         "Producto",
         "Presentación",
         "Categoría"
         <?php if ($mostrar_stock_actual): ?>, "Stock Actual"<?php endif; ?>,
-        "Stock Mínimo",
-        "Fabricación",
-        "Vencimiento",
-        "Ingreso",
+        "Stock Mínimo"
+        <?php if ($mostrar_lote): ?>, "Fabricación", "Vencimiento", "Ingreso"<?php endif; ?>,
         "Bodega"
         <?php if ($mostrar_estado_lote): ?>, "Estado Lote"<?php endif; ?>
         <?php if ($mostrar_estado_prod): ?>, "Estado Producto"<?php endif; ?>
     ];
 
-    const data = <?php echo json_encode($lotes); ?>.map((item, index) => [
-        index + 1,
-        item.NUM_LOTE,
-        item.NOM_PROD,
-        item.PRESENTACION_PROD,
-        item.nombre_cat
-        <?php if ($mostrar_stock_actual): ?>, item.CANTIDAD_LOTE<?php endif; ?>,
-        item.stock_min_prod,
-        item.FECH_FABRI,
-        item.FECH_VENC,
-        item.FECHA_ING,
-        "<?php echo $_SESSION['nombre_bodega']; ?>"
-        <?php if ($mostrar_estado_lote): ?>, item.ESTADO_LOTE === 1 ? "Activo" : "Inactivo"<?php endif; ?>
-        <?php if ($mostrar_estado_prod): ?>, item.estado_prod === 1 ? "Activo" : "Inactivo"<?php endif; ?>
-    ]);
+    const data = <?php echo json_encode($lotes); ?>.map((item, index) => {
+        let row = [
+            index + 1
+            <?php if ($mostrar_lote): ?>, item.NUM_LOTE<?php endif; ?>,
+            item.NOM_PROD,
+            item.PRESENTACION_PROD,
+            item.nombre_cat
+            <?php if ($mostrar_stock_actual): ?>, <?php echo $mostrar_lote ? 'item.CANTIDAD_LOTE' : 'item.stock_act_prod'; ?><?php endif; ?>,
+            item.stock_min_prod
+            <?php if ($mostrar_lote): ?>, item.FECH_FABRI, item.FECH_VENC, item.FECHA_ING<?php endif; ?>,
+            "<?php echo $_SESSION['nombre_bodega']; ?>"
+            <?php if ($mostrar_estado_lote): ?>, item.ESTADO_LOTE === 1 ? "Activo" : "Inactivo"<?php endif; ?>
+            <?php if ($mostrar_estado_prod): ?>, item.estado_prod === 1 ? "Activo" : "Inactivo"<?php endif; ?>
+        ];
+        return row;
+    });
 
     // Generar tabla
     doc.autoTable({
