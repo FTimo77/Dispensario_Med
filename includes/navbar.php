@@ -24,7 +24,7 @@
         </li><?php
         $nombre_rol = $_SESSION["nombre_rol"];
 
-        if ($nombre_rol === 'admin' || $nombre_rol === 'doctor'): ?>
+        if ($nombre_rol === 'ADMIN' || $nombre_rol === 'DOCTOR' || $nombre_rol === 'ENFERMERA'): ?>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" id="registroDropdown" role="button" data-bs-toggle="dropdown"
               aria-expanded="false">
@@ -32,7 +32,7 @@
             </a>
             <ul class="dropdown-menu" aria-labelledby="registroDropdown">
 
-              <?php if ($nombre_rol === 'admin'): ?>
+              <?php if ($nombre_rol === 'ADMIN'): ?>
                 <li>
                   <h6 class="dropdown-header">Administración</h6>
                 </li>
@@ -42,7 +42,7 @@
                 <li>
                   <hr class="dropdown-divider" />
                 </li>
-              <?php elseif ($nombre_rol === 'doctor'): ?>
+              <?php elseif ($nombre_rol === 'DOCTOR' || $nombre_rol=='ENFERMERA'): ?>
                 <li><a class="dropdown-item" href="paciente.php"><i class="bi bi-people"></i> Pacientes</a></li>
               <?php endif; ?>
 
