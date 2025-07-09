@@ -147,7 +147,8 @@ function eliminar_usuario($conexion, $id_usuario) {
                         . htmlspecialchars($usuario['ID_USUARIO']) . "', '"
                         . htmlspecialchars($usuario['NOMBRE_USUARIO']) . "', '"
                         . htmlspecialchars($usuario['NOMBRE_ROL']) . "', '"
-                        . htmlspecialchars($usuario['COD_ROL']) . "')\">
+                        . htmlspecialchars($usuario['COD_ROL']) . "', '"
+                        . htmlspecialchars($usuario['ESTADO_USUARIO']) . "')\">
                         <i class='bi bi-pencil-square'></i></a></td>";
                     echo "<td><a class='btn_eliminar' href='?id_usuario=" . htmlspecialchars($usuario['ID_USUARIO']) . "' onclick=\"return confirm('¿Estás seguro que deseas eliminar este usuario?')\"><i class='bi bi-trash3-fill'></i></a></td>";
                 }
@@ -210,6 +211,23 @@ function eliminar_usuario($conexion, $id_usuario) {
           <label for="repetirPassword" class="form-label">Repetir Contraseña</label>
           <input type="password" class="form-control" id="repetirPassword" name="repetirPassword" placeholder="Repita la contraseña" required />
         </div>
+        <div class="mb-3" id="divEstado" style="display: none;">
+          <label class="form-label">Estado del Usuario</label>
+          <div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="estado" id="estadoActivo" value="1">
+              <label class="form-check-label" for="estadoActivo">
+                Activo
+              </label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="radio" name="estado" id="estadoInactivo" value="0">
+              <label class="form-check-label" for="estadoInactivo">
+                Inactivo
+              </label>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -227,62 +245,94 @@ function eliminar_usuario($conexion, $id_usuario) {
 <script>
   const modal = new bootstrap.Modal(document.getElementById('modalAgregarUsuario'));
 
-  function abrirModalEditar(id_usuario, nombre, pass_usuario, rol, cod_rol, estado) {
+  function abrirModalEditar(id_usuario, nombre, rol, cod_rol, estado) {
+    // Cambiar título del modal
+    document.getElementById('abrirModalAgregarLabel').innerHTML = 'Editar Usuario';
+    
+    // Llenar los campos del formulario
     document.getElementById('nuevoUsuario').value = nombre;
-    document.getElementById('rol').innerHTML = rol;
-    document.getElementById('rol').value = cod_rol;
-    document.getElementById('password').value = ''; // <-- Deja vacío
-
-    let radio=null
-    if(estado=='1'){
-       radio =document.getElementById("estadoActivo")
-        radio.checked=true
-        radio.value='1'
-    }else{
-       radio =document.getElementById("estadoInactivo")
-        radio.checked=true
-        radio.value='0'
+    
+    // Seleccionar el rol en el dropdown
+    document.getElementById('nuevoRol').value = cod_rol;
+    
+    // Limpiar campos de contraseña
+    document.getElementById('nuevoPassword').value = '';
+    document.getElementById('repetirPassword').value = '';
+    
+    // Hacer los campos de contraseña opcionales para edición
+    document.getElementById('nuevoPassword').required = false;
+    document.getElementById('repetirPassword').required = false;
+    
+    // Mostrar y configurar los radio buttons de estado
+    document.getElementById('divEstado').style.display = 'block';
+    
+    if(estado == '1'){
+       document.getElementById("estadoActivo").checked = true;
+    } else {
+       document.getElementById("estadoInactivo").checked = true;
     }
 
-    let btnAgregarEditar=document.getElementById("btnAgregarEditar")
-    btnAgregarEditar.setAttribute("value","Actualizar")
-    btnAgregarEditar.value="editar"
-    btnAgregarEditar.innerHTML="Editar"
-    // console.log(document.getElementById('nuevoUsuario'));
-    // console.log(document.getElementById('rol'));
-    // console.log(document.getElementById('password'));
-    // console.log(radio);
-    // console.log(btnAgregarEditar);
+    // Configurar el botón para edición
+    let btnAgregarEditar = document.getElementById("btnAgregarEditar");
+    btnAgregarEditar.setAttribute("value", "editar");
+    btnAgregarEditar.value = "editar";
+    btnAgregarEditar.innerHTML = "Actualizar";
     
-    let idUsuaro = document.getElementById('idUsuaro')
-    idUsuaro.hidden=false
-    idUsuaro.value=id_usuario
-    console.log(idUsuaro);
+    // Guardar el ID del usuario
+    let idUsuaro = document.getElementById('idUsuaro');
+    idUsuaro.value = id_usuario;
+    
     modal.show();
   }
 
   
   function abrirModalAgregar() {
+    // Cambiar título del modal
+    document.getElementById('abrirModalAgregarLabel').innerHTML = 'Agregar Usuario';
+    
+    // Resetear formulario
     document.getElementById('formAgregarUsuario').reset();
+    
+    // Limpiar campos específicos
     document.getElementById('nuevoUsuario').value = '';
-    document.getElementById('rol').innerHTML = 'Seleccione';
-    document.getElementById('rol').value = '';
-     let btnAgregarEditar=document.getElementById("btnAgregarEditar")
-    btnAgregarEditar.setAttribute("value","Actualizar")
-    btnAgregarEditar.value="agregar"
-    btnAgregarEditar.innerHTML="Agregar"
-    console.log(btnAgregarEditar);
+    document.getElementById('nuevoRol').value = '';
+    document.getElementById('nuevoPassword').value = '';
+    document.getElementById('repetirPassword').value = '';
+    
+    // Hacer los campos de contraseña obligatorios para nuevo usuario
+    document.getElementById('nuevoPassword').required = true;
+    document.getElementById('repetirPassword').required = true;
+    
+    // Ocultar campos de estado (no necesarios para nuevo usuario)
+    document.getElementById('divEstado').style.display = 'none';
+    
+    // Configurar el botón para agregar
+    let btnAgregarEditar = document.getElementById("btnAgregarEditar");
+    btnAgregarEditar.setAttribute("value", "agregar");
+    btnAgregarEditar.value = "agregar";
+    btnAgregarEditar.innerHTML = "Agregar";
+    
+    // Limpiar ID de usuario
+    document.getElementById('idUsuaro').value = '';
+    
     modal.show();
   }
 
   function validarFormularioUsuario() {
     const pass = document.getElementById('nuevoPassword').value;
     const pass2 = document.getElementById('repetirPassword').value;
-    const error = validarPassword(pass, pass2); // Esta sí está en js/validaciones.js
-    if (error) {
-        alert(error);
-        return false;
+    const btnValue = document.getElementById('btnAgregarEditar').value;
+    
+    // Solo validar contraseñas si estamos agregando un usuario nuevo
+    // o si se ha ingresado una nueva contraseña en modo edición
+    if (btnValue === 'agregar' || (btnValue === 'editar' && pass.trim() !== '')) {
+        const error = validarPassword(pass, pass2);
+        if (error) {
+            alert(error);
+            return false;
+        }
     }
+    
     return true;
 }
 </script>

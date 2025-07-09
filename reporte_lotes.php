@@ -340,15 +340,15 @@ document.getElementById('btnExportPDF').addEventListener('click', function() {
         "Lote",
         "Producto",
         "Presentación",
-        "Categoría",
-        <?php if ($mostrar_stock_actual): ?> "Stock Actual", <?php endif; ?>
+        "Categoría"
+        <?php if ($mostrar_stock_actual): ?>, "Stock Actual"<?php endif; ?>,
         "Stock Mínimo",
         "Fabricación",
         "Vencimiento",
         "Ingreso",
-        "Bodega",
-        <?php if ($mostrar_estado_lote): ?> "Estado Lote", <?php endif; ?>
-        <?php if ($mostrar_estado_prod): ?> "Estado Producto" <?php endif; ?>
+        "Bodega"
+        <?php if ($mostrar_estado_lote): ?>, "Estado Lote"<?php endif; ?>
+        <?php if ($mostrar_estado_prod): ?>, "Estado Producto"<?php endif; ?>
     ];
 
     const data = <?php echo json_encode($lotes); ?>.map((item, index) => [
@@ -356,15 +356,15 @@ document.getElementById('btnExportPDF').addEventListener('click', function() {
         item.NUM_LOTE,
         item.NOM_PROD,
         item.PRESENTACION_PROD,
-        item.nombre_cat,
-        <?php if ($mostrar_stock_actual): ?> item.CANTIDAD_LOTE, <?php endif; ?>
+        item.nombre_cat
+        <?php if ($mostrar_stock_actual): ?>, item.CANTIDAD_LOTE<?php endif; ?>,
         item.stock_min_prod,
         item.FECH_FABRI,
         item.FECH_VENC,
         item.FECHA_ING,
-        "<?php echo $_SESSION['nombre_bodega']; ?>",
-        <?php if ($mostrar_estado_lote): ?> item.ESTADO_LOTE === 1 ? "Activo" : "Inactivo", <?php endif; ?>
-        <?php if ($mostrar_estado_prod): ?> item.estado_prod === 1 ? "Activo" : "Inactivo" <?php endif; ?>
+        "<?php echo $_SESSION['nombre_bodega']; ?>"
+        <?php if ($mostrar_estado_lote): ?>, item.ESTADO_LOTE === 1 ? "Activo" : "Inactivo"<?php endif; ?>
+        <?php if ($mostrar_estado_prod): ?>, item.estado_prod === 1 ? "Activo" : "Inactivo"<?php endif; ?>
     ]);
 
     // Generar tabla
