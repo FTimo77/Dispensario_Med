@@ -266,6 +266,12 @@ $conn->close();
                                 <?php endforeach; ?>
                             <?php endif; ?>
                         </tbody>
+                        <!-- Dentro de <div class="card-body">, después de la tabla -->
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        <button id="btnExportPDF" class="btn btn-success">
+                            <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+                        </button>
+                        </div>
                     </table>
                 </div>
             </div>
@@ -305,6 +311,86 @@ $conn->close();
     <script src="js/models.js"></script>
     <script src="js/navbar-submenu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Agrega esto ANTES del cierre de </body> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+  // Inicializa jsPDF
+  const { jsPDF } = window.jspdf;
+</script>
+<script>
+document.getElementById('btnExportPDF').addEventListener('click', function() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm'
+    });
+
+    // Título y fecha
+    const title = "<?php echo $titulo; ?>";
+    doc.setFontSize(16);
+    doc.text(title, 15, 15);
+    doc.setFontSize(10);
+    doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 15, 22);
+
+    // Datos de la tabla desde PHP
+    const headers = [
+        "#",
+        "Lote",
+        "Producto",
+        "Presentación",
+        "Categoría",
+        <?php if ($mostrar_stock_actual): ?> "Stock Actual", <?php endif; ?>
+        "Stock Mínimo",
+        "Fabricación",
+        "Vencimiento",
+        "Ingreso",
+        "Bodega",
+        <?php if ($mostrar_estado_lote): ?> "Estado Lote", <?php endif; ?>
+        <?php if ($mostrar_estado_prod): ?> "Estado Producto" <?php endif; ?>
+    ];
+
+    const data = <?php echo json_encode($lotes); ?>.map((item, index) => [
+        index + 1,
+        item.NUM_LOTE,
+        item.NOM_PROD,
+        item.PRESENTACION_PROD,
+        item.nombre_cat,
+        <?php if ($mostrar_stock_actual): ?> item.CANTIDAD_LOTE, <?php endif; ?>
+        item.stock_min_prod,
+        item.FECH_FABRI,
+        item.FECH_VENC,
+        item.FECHA_ING,
+        "<?php echo $_SESSION['nombre_bodega']; ?>",
+        <?php if ($mostrar_estado_lote): ?> item.ESTADO_LOTE === 1 ? "Activo" : "Inactivo", <?php endif; ?>
+        <?php if ($mostrar_estado_prod): ?> item.estado_prod === 1 ? "Activo" : "Inactivo" <?php endif; ?>
+    ]);
+
+    // Generar tabla
+    doc.autoTable({
+        head: [headers],
+        body: data,
+        startY: 30,
+        margin: { left: 10 },
+        styles: {
+            fontSize: 8,
+            cellPadding: 1.5,
+            overflow: 'linebreak'
+        },
+        columnStyles: {
+            0: { cellWidth: 8 },  // Columna #
+            1: { cellWidth: 15 }, // Lote
+            2: { cellWidth: 30 }, // Producto
+            3: { cellWidth: 25 }, // Presentación
+            4: { cellWidth: 25 }  // Categoría
+            // ... ajusta según necesidad
+        }
+    });
+
+    doc.save(`Reporte_${title.replace(/ /g, '_')}.pdf`);
+});
+</script>
     <div class="wave-container">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"
             style="display:block; width:100vw; height:auto; margin:0; padding:0;">

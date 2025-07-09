@@ -230,8 +230,8 @@ $conn->close();
           <div class="row g-3">
             <div class="col-12">
               <label for="productname" class="form-label">Nombre del producto</label>
-              <input type="text" class="form-control" id="productname" name="productname" placeholder="Ej. Paracetamol"
-                required oninput="letrasYEspacios(this)"/>
+              <input type="text" class="form-control uppercase-input" id="productname" name="productname" placeholder="Ej. Paracetamol"
+                required oninput="letrasYEspacios(this); this.value= this.value.toUpperCase()" />
             </div>
             <div class="col-12">
               <label for="presentacionproducto" class="form-label">Presentación del producto</label>
@@ -260,12 +260,12 @@ $conn->close();
                 <label for="medida_unidad" class="form-label">Unidad</label>
                 <select class="form-select" id="medida_unidad" name="medida_unidad">
                   <option value="">Unidad</option>
-                  <option value="mg">mg</option>
-                  <option value="g">g</option>
-                  <option value="ml">ml</option>
+                  <option value="MG">MG</option>
+                  <option value="G">G</option>
+                  <option value="ML">ML</option>
                   <option value="L">L</option>
                   <option value="UI">UI</option>
-                  <option value="mcg">mcg</option>
+                  <option value="MCG">MCG</option>
                 </select>
               </div>
             </div>
@@ -285,8 +285,8 @@ $conn->close();
                   <i class="bi bi-gear"></i>
                 </button>
               </div>
-              <input type="text" class="form-control mt-2" id="nueva_categoria" name="nueva_categoria"
-                placeholder="O escriba una nueva categoría" oninput="letrasYEspacios(this)" />
+              <input type="text" class="form-control mt-2 uppercase-input" id="nueva_categoria" name="nueva_categoria"
+                placeholder="O escriba una nueva categoría" oninput="letrasYEspacios(this); this.value= this.value.toUpperCase()" />
               <small class="text-muted">Seleccione una categoría existente o escriba una nueva.</small>
             </div>
             <div class="col-12">

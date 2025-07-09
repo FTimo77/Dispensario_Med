@@ -175,11 +175,11 @@ function obtenerPacientes($conexion) {
       <div class="modal-body">
       <div class="mb-3">
           <label for="">Nombre de Paciente</label>  
-          <input type="text" class="form-control" id="nombrep" name="nombrep" placeholder="Ingrese el nombre del paciente" required oninput="letrasYEspacios(this)"/>
+          <input type="text" class="form-control uppercase-input" id="nombrep" name="nombrep" placeholder="Ingrese el nombre del paciente" required oninput="letrasYEspacios(this); this.value= this.value.toUpperCase()"/>
       </div>
         <div class="mb-3">
           <label for="">Apellido de Paciente</label>  
-          <input type="text" class="form-control" id="apellidop" name="apellidop" placeholder="Ingrese el apellido del paciente" required   required oninput="letrasYEspacios(this)"/>
+          <input type="text" class="form-control uppercase-input" id="apellidop" name="apellidop" placeholder="Ingrese el apellido del paciente" required   required oninput="letrasYEspacios(this); this.value= this.value.toUpperCase()"/>
       </div>
       <select class="form-select mb-3" id="empresa" name="empresa" required>
         <label for="empresa">Empresa</label>

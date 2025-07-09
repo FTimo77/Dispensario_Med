@@ -226,6 +226,12 @@ $conn->close();
                                     <?php endforeach; ?>
                                 <?php endif; ?>
                             </tbody>
+                            <!-- Dentro de <div class="card-body">, después de la tabla -->
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                            <button id="btnExportPDF" class="btn btn-success">
+                              <i class="bi bi-file-earmark-pdf"></i> Exportar a PDF
+                            </button>
+                            </div>
                         </table>
                     </form>
                 </div>
@@ -235,6 +241,91 @@ $conn->close();
     <script src="js/models.js"></script>
     <script src="js/navbar-submenu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- aqui añadimos el js para la funcionalidad de exportar en pdf -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<script>
+  const { jsPDF } = window.jspdf;
+</script>
+<script>
+document.getElementById('btnExportPDF').addEventListener('click', function() {
+    // Configuración del PDF
+    const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm'
+    });
+
+    // Título y fecha
+    const title = "Reporte de Productos Caducados";
+    doc.setFontSize(16);
+    doc.text(title, 15, 15);
+    doc.setFontSize(10);
+    doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 15, 22);
+    doc.text(`Bodega: <?php echo $_SESSION['nombre_bodega']; ?>`, 15, 28);
+
+    // Datos de la tabla desde PHP
+    const headers = [
+        "#",
+        "Lote",
+        "Producto",
+        "Presentación",
+        "Categoría",
+        "Cantidad",
+        "Fecha Vencimiento",
+        "Fecha Ingreso",
+        "Estado Lote"
+    ];
+
+    const data = <?php echo json_encode($lotes); ?>.map((item, index) => [
+        index + 1,
+        item.NUM_LOTE,
+        item.NOM_PROD,
+        item.PRESENTACION_PROD,
+        item.nombre_cat,
+        item.CANTIDAD_LOTE,
+        item.FECH_VENC,
+        item.FECHA_ING,
+        item.ESTADO_LOTE === 1 ? "Activo" : "Inactivo"
+    ]);
+
+    // Generar tabla
+    doc.autoTable({
+        head: [headers],
+        body: data,
+        startY: 35,
+        margin: { left: 10 },
+        styles: {
+            fontSize: 8,
+            cellPadding: 1.5,
+            overflow: 'linebreak'
+        },
+        columnStyles: {
+            0: { cellWidth: 8 },   // #
+            1: { cellWidth: 15 },  // Lote
+            2: { cellWidth: 30 },  // Producto
+            3: { cellWidth: 25 },  // Presentación
+            4: { cellWidth: 25 },  // Categoría
+            5: { cellWidth: 15 },  // Cantidad
+            6: { cellWidth: 20 },  // Fecha Vencimiento
+            7: { cellWidth: 20 },  // Fecha Ingreso
+            8: { cellWidth: 15 }   // Estado
+        },
+        didDrawCell: (data) => {
+            // Resaltar fechas vencidas
+            if (data.column.index === 6) {
+                const cellValue = data.cell.raw;
+                if (new Date(cellValue) < new Date()) {
+                    doc.setTextColor(255, 0, 0); // Rojo para vencidos
+                    doc.text(cellValue, data.cell.x + 2, data.cell.y + 5);
+                    doc.setTextColor(0, 0, 0); // Restaurar color
+                }
+            }
+        }
+    });
+
+    doc.save(`Reporte_Productos_Caducados_<?php echo $_SESSION['nombre_bodega']; ?>_${new Date().toISOString().slice(0,10)}.pdf`);
+});
+</script>
     <div class="wave-container">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"
             style="display:block; width:100vw; height:auto; margin:0; padding:0;">
