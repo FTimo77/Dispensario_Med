@@ -1,50 +1,12 @@
 <?php
 
-session_start();
+  session_start();
 
-if (!isset($_SESSION['usuario']) && !isset($_SESSION['bodega'])) {
+if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
     session_destroy();
     header("Location: index.php");
     exit;
 }
-
-require_once 'config/conexion.php';
-require_once 'includes/producto_model.php';
-
-// Conexión
-$conexion = new Conexion();
-$conn = $conexion->connect();
-
-// Manejar la solicitud AJAX para validar producto
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre']) && !isset($_POST['productname'])) {
-    header('Content-Type: application/json');
-    
-    try {
-        $nombre = trim($conn->real_escape_string($_POST['nombre']));
-        $bodega = $_SESSION['bodega'];
-        
-        $stmt = $conn->prepare("SELECT COUNT(*) as total FROM producto 
-                              WHERE NOM_PROD = ? 
-                              AND CODIGO_BODEGA = ? 
-                              AND estado_prod = 1");
-        $stmt->bind_param("si", $nombre, $bodega);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        echo json_encode([
-            'existe' => $result->fetch_assoc()['total'] > 0,
-            'nombre' => $nombre
-        ]);
-        exit;
-    } catch (Exception $e) {
-        echo json_encode([
-            'error' => 'Error al verificar el producto: ' . $e->getMessage()
-        ]);
-        exit;
-    }
-}
-
-// Resto de tu código PHP actual...
 
 $mensaje = "";
 if (isset($_GET['success'])) {
@@ -269,8 +231,7 @@ $conn->close();
             <div class="col-12">
               <label for="productname" class="form-label">Nombre del producto</label>
               <input type="text" class="form-control uppercase-input" id="productname" name="productname" placeholder="Ej. Paracetamol"
-                required oninput="letrasYEspacios(this); this.value= this.value.toUpperCase()" 
-                onblur="validarProductoExistente(this)">
+                required oninput="letrasYEspacios(this); this.value= this.value.toUpperCase()" />
             </div>
             <div class="col-12">
               <label for="presentacionproducto" class="form-label">Presentación del producto</label>
@@ -426,57 +387,6 @@ $conn->close();
       document.getElementById('id_producto_editar').value = '';
       document.getElementById('modalCrearProductoLabel').textContent = 'Crear Producto';
     });
-
-function validarProductoExistente(input) {
-    const nombre = input.value.trim();
-    const errorDiv = document.getElementById('producto-error');
-    
-    // Resetear mensaje de error
-    if (errorDiv) {
-        errorDiv.style.display = 'none';
-        errorDiv.textContent = '';
-    }
-    
-    if (!nombre) return;
-
-    fetch(window.location.href, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: 'nombre=' + encodeURIComponent(nombre)
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Error en la respuesta del servidor');
-        return response.json();
-    })
-    .then(data => {
-        if (data.error) {
-            console.error('Error:', data.error);
-            return;
-        }
-        
-        if (data.existe) {
-            // Mostrar alerta con un solo botón OK
-            alert(`El producto "${data.nombre}" ya existe en la bodega`);
-            
-            // Estas acciones se ejecutarán después de hacer clic en OK
-            document.getElementById('formularioProducto').reset();
-            
-            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCrearProducto'));
-            if (modal) {
-                modal.hide();
-            }
-        }
-    })
-    .catch(error => {
-        console.error('Error al validar producto:', error);
-        if (errorDiv) {
-            errorDiv.textContent = 'Error al verificar el producto';
-            errorDiv.style.display = 'block';
-        }
-    });
-}
   </script>
   <div class="wave-container">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"
