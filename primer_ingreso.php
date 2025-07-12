@@ -1,42 +1,19 @@
 <?php
 require_once 'config/conexion.php';
+require_once 'includes/usuario_manager.php';
 
 $conexion = new Conexion();
 $conn = $conexion->connect();
 $mensaje = "";
 
-// Procesar registro inicial
+// Procesar registro inicial usando la clase
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crear_inicial"])) {
-    $nuevo_usuario = trim($_POST['nuevo_usuario']);
-    $nueva_clave = trim($_POST['nueva_clave']);
-    $nombre_bodega = trim($_POST['nombre_bodega']);
-
-    if ($nuevo_usuario === "" || $nueva_clave === "" || $nombre_bodega === "") {
-        $mensaje = "Por favor, complete todos los campos.";
-    } else {
-        // Crear bodega
-        $stmt_bodega = $conn->prepare("INSERT INTO bodega (DESCRIPCION, estado_bodega) VALUES (?, '1')");
-        $stmt_bodega->bind_param("s", $nombre_bodega);
-        if ($stmt_bodega->execute()) {
-            $codigo_bodega = $conn->insert_id;
-            $stmt_bodega->close();
-
-            // Crear usuario (rol admin por defecto)
-            $hash = password_hash($nueva_clave, PASSWORD_DEFAULT);
-            $stmt_usuario = $conn->prepare("INSERT INTO usuario (nombre_usuario, pass_usuario, cod_rol, estado_usuario) VALUES (?, ?, '1', '1')");
-            $stmt_usuario->bind_param("ss", $nuevo_usuario, $hash);
-            if ($stmt_usuario->execute()) {
-                $mensaje = "Usuario y bodega creados correctamente. Ahora puede iniciar sesión.";
-                header("Location: index.php");
-                exit;
-            } else {
-                $mensaje = "Error al crear el usuario: " . $stmt_usuario->error;
-            }
-            $stmt_usuario->close();
-        } else {
-            $mensaje = "Error al crear la bodega: " . $stmt_bodega->error;
-            $stmt_bodega->close();
-        }
+    $usuarioManager = new UsuarioManager($conn);
+    $exito = $usuarioManager->registrarConBodega($_POST['nuevo_usuario'], $_POST['nueva_clave'], $_POST['nombre_bodega']);
+    $mensaje = $usuarioManager->mensaje;
+    if ($exito) {
+        header("Location: index.php");
+        exit;
     }
 }
 ?>

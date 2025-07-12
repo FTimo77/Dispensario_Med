@@ -24,11 +24,11 @@ if (isset($_GET['id_usuario'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre_p = $_POST['nombrep'];
     $apellido_p = $_POST['apellidop'];
-    $empresa = $_POST['empresa'];
-    $estado = $_POST['estado'];
+    $empresa = isset($_POST['nuevaEmpresa']) && trim($_POST['nuevaEmpresa']) !== '' ? trim($_POST['nuevaEmpresa']) : $_POST['empresa'];
     $agregarEditar = $_POST['agregarEditar'];
 
     if ($agregarEditar == "agregar") {
+        $estado = '1'; // Siempre activo al crear
         if (insert_usuario($conexion, $nombre_p, $apellido_p, $empresa, $estado)) {
             header("Location: paciente.php");
             exit();
@@ -37,6 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($agregarEditar == "editar") {
         $id_usuario = $_POST['idUsuario'];
+        $estado = '1'; // Siempre activo también al editar
         if (editarUsuario($conexion, $id_usuario, $nombre_p, $apellido_p, $empresa, $estado)) {
             header("Location: paciente.php");
             exit();
@@ -181,36 +182,29 @@ function obtenerPacientes($conexion) {
           <label for="">Apellido de Paciente</label>  
           <input type="text" class="form-control uppercase-input" id="apellidop" name="apellidop" placeholder="Ingrese el apellido del paciente" required   required oninput="letrasYEspacios(this); this.value= this.value.toUpperCase()"/>
       </div>
-      <select class="form-select mb-3" id="empresa" name="empresa" required>
+      <div class="mb-3">
         <label for="empresa">Empresa</label>
-        <option value="" disabled selected>Seleccione una empresa</option>
-        <option value="TELECUATRO GUAYAQUIL">TELECUATRO GUAYAQUIL</option>
-        <option value="ORTEL">ORTEL</option>
-        <option value="CENTRADEC">CENTRADEC</option>
-        <option value="DORICO">DORICO</option>
-        <option value="RIDALTO">RIDALTO</option>
-        <option value="TESATEL">TESATEL</option>
-        <option value="ECUADORADIO">ECUADORADIO</option>
-        <option value="INDETEL">INDETEL</option>
-        <option value="ANDIVISION">ANDIVISION</option>
-        <option value="KASHMIR">KASHMIR</option>
-        <option value="TRAFALGAR">TRAFALGAR</option>
-        <option value="AYAX">AYAX</option>
-        <option value="ECUASERVIPRODU">ECUASERVIPRODU</option>
-        <option value="MEGACOMUNICATIONS">MEGACOMUNICATIONS</option>
-        <option value="YOMAR">YOMAR</option>
-      </select>
-        <div class="mb-3">
-        <label class="form-label">Estado</label>
-        </div> 
-    <div class="form-check form-check-inline">
-      <input class="form-check-input" type="radio" name="estado" id="estadoActivo" value="1" checked>
-        <label class="form-check-label" for="estadoActivo" >Activo</label>
+        <select class="form-select" id="empresa" name="empresa">
+          <option value="" selected>Seleccione una empresa</option>
+          <?php
+            // Obtener empresas distintas de la tabla pacientes
+            $empresas = [];
+            $resultEmpresas = $conexion->query("SELECT DISTINCT empresa FROM pacientes WHERE empresa IS NOT NULL AND empresa != '' ORDER BY empresa ASC");
+            if ($resultEmpresas && $resultEmpresas->num_rows > 0) {
+              while ($row = $resultEmpresas->fetch_assoc()) {
+                $emp = htmlspecialchars($row['empresa']);
+                echo "<option value=\"$emp\">$emp</option>";
+                $empresas[] = $emp;
+              }
+            }
+          ?>
+        </select>
+        <div class="mt-2">
+          <input type="text" class="form-control" id="nuevaEmpresa" name="nuevaEmpresa" placeholder="Agregar nueva empresa (opcional)" oninput="this.value = this.value.toUpperCase();">
+        </div>
       </div>
-      <div class="form-check form-check-inline">
-      <input class="form-check-input" type="radio" name="estado" id="estadoInactivo" value="0">
-        <label class="form-check-label" for="estadoInactivo">Inactivo</label>
-      </div>
+        <!-- Estado oculto, siempre activo al crear y editar -->
+        <input type="hidden" name="estado" value="1">
     </div>
     <div>
         <input type="hidden" id="idUsuaro" name="idUsuario" value="" hidden>
@@ -250,8 +244,7 @@ function obtenerPacientes($conexion) {
     document.getElementById('nombrep').value = '';
     document.getElementById('apellidop').value = '';
     document.getElementById('empresa').value = '';
-    document.getElementById('estadoActivo').checked = true;
-    document.getElementById('estadoInactivo').checked = false;
+
 
     document.getElementById('btnAgregarEditar').value = 'agregar';
     document.getElementById('btnAgregarEditar').innerHTML = 'Agregar';
@@ -270,8 +263,7 @@ function obtenerPacientes($conexion) {
   document.getElementById('apellidop').value = apellido;
   document.getElementById('empresa').value = empresa;
 
-  document.getElementById('estadoActivo').checked = (estado == '1');
-  document.getElementById('estadoInactivo').checked = (estado == '0');
+
 
   document.getElementById('btnAgregarEditar').value = 'editar';
   document.getElementById('btnAgregarEditar').innerHTML = 'Editar';

@@ -8,87 +8,52 @@
      exit;
  }
 require_once "./config/conexion.php";
-require_once "./includes/usuario_model.php";
+
+require_once "./includes/usuario_manager.php";
 
 
 
 $conexion = new Conexion();
 $conexion = $conexion->connect();
 
+
+$usuarioManager = new UsuarioManager($conexion);
 // Eliminar lógicamente al usuario
 if (isset($_GET['id_usuario'])) {
     $id_usuario =  $_GET['id_usuario'];
-    eliminar_usuario($conexion, $id_usuario);
+    $usuarioManager->eliminar($id_usuario);
     header("Location: users.php");
     exit();
 }
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre_usuario = $_POST['nuevoUsuario'];
     $cod_rol = $_POST['nuevoRol'];
     $pass_usuario = $_POST['nuevoPassword'];
     $estado = $_POST['estado'];
-    $agregarEditar=$_POST['agregarEditar'];
-  //    echo $agregarEditar.'<br>';
-  //   echo $nombre_usuario.'<br>';
-  //    echo 'cod rol '.$cod_rol.'<br>';
-  //  echo $pass_usuario.'<br>';
-  //    echo"estado" .$estado.'<br>';
-    if($agregarEditar=="agregar"){
+    $agregarEditar = $_POST['agregarEditar'];
+    if ($agregarEditar == "agregar") {
         $estado = 1; // Siempre activo al crear
-        if (insert_usuario($conexion, $cod_rol, $nombre_usuario, $pass_usuario, $estado)) {
-          header("Location: users.php");
-          exit();
+        if ($usuarioManager->insertar($cod_rol, $nombre_usuario, $pass_usuario, $estado)) {
+            header("Location: users.php");
+            exit();
         } else {
-            echo "<script>alert('Error al agregar el usuario');</script>";
+            echo "<script>alert('" . $usuarioManager->mensaje . "');</script>";
         }
-    }else if($agregarEditar=="editar"){
-      $id_usuario=  $_POST['idUsuario'];
-        if (editarUsuario($conexion, $id_usuario,$cod_rol, $nombre_usuario, $pass_usuario, $estado)) {
-          header("Location: users.php");
-          exit();
+    } else if ($agregarEditar == "editar") {
+        $id_usuario = $_POST['idUsuario'];
+        if ($usuarioManager->editar($id_usuario, $cod_rol, $nombre_usuario, $pass_usuario, $estado)) {
+            header("Location: users.php");
+            exit();
         } else {
-            echo "<script>alert('Error al agregar el usuario');</script>";
+            echo "<script>alert('" . $usuarioManager->mensaje . "');</script>";
         }
     }
-
 }
 
-function insert_usuario($conexion, $cod_rol, $nombre_usuario, $pass_usuario, $estado) {
-    $pass_usuario_hash = password_hash($pass_usuario, PASSWORD_DEFAULT); // <-- Hashea aquí
-    $stmt = $conexion->prepare("INSERT INTO usuario (COD_ROL, NOMBRE_USUARIO, PASS_USUARIO, ESTADO_USUARIO) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $cod_rol, $nombre_usuario, $pass_usuario_hash, $estado);
-    return $stmt->execute();
-}
 
-function editarUsuario($conexion, $id_usuario, $cod_rol, $nombre_usuario, $pass_usuario, $estado) {
-    if (!empty($pass_usuario)) {
-        // Si hay nueva contraseña, hashearla y actualizar
-        $pass_usuario_hash = password_hash($pass_usuario, PASSWORD_DEFAULT);
-        $stmt = $conexion->prepare("UPDATE usuario 
-            SET COD_ROL = ?, 
-                NOMBRE_USUARIO = ?, 
-                PASS_USUARIO = ?, 
-                ESTADO_USUARIO = ? 
-            WHERE ID_USUARIO = ?");
-        $stmt->bind_param("isssi", $cod_rol, $nombre_usuario, $pass_usuario_hash, $estado, $id_usuario);
-    } else {
-        // Si no hay nueva contraseña, no actualizar ese campo
-        $stmt = $conexion->prepare("UPDATE usuario 
-            SET COD_ROL = ?, 
-                NOMBRE_USUARIO = ?, 
-                ESTADO_USUARIO = ? 
-            WHERE ID_USUARIO = ?");
-        $stmt->bind_param("issi", $cod_rol, $nombre_usuario, $estado, $id_usuario);
-    }
-    return $stmt->execute();
-}
-
-function eliminar_usuario($conexion, $id_usuario) {
-    $stmt = $conexion->prepare("UPDATE usuario SET  ESTADO_USUARIO = '0' WHERE ID_USUARIO = ?");
-    $stmt->bind_param("i", $id_usuario);
-    return $stmt->execute();
-}
+// Las funciones insert_usuario, editarUsuario y eliminar_usuario ya no son necesarias, todo se maneja por la clase UsuarioManager
 ?>
 
 
@@ -133,6 +98,8 @@ function eliminar_usuario($conexion, $id_usuario) {
           </thead>
           <tbody id="tablaUsuarios">
             <?php
+            require_once "config/conexion.php";
+            require_once "includes/usuario_model.php";
             $con = new Conexion();
             $con = $con->connect();
             $usuarios = obtenerUsuarios($con, false); // false = solo activos

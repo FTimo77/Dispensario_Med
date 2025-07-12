@@ -74,16 +74,31 @@ if ($result) {
   }
 }
 
+// Cargar presentaciones distintas para el select
+$presentaciones = [];
+$resultPres = $conn->query("SELECT DISTINCT PRESENTACION_PROD FROM producto WHERE PRESENTACION_PROD IS NOT NULL AND PRESENTACION_PROD != ''");
+if ($resultPres) {
+  while ($row = $resultPres->fetch_assoc()) {
+    $presentaciones[] = $row['PRESENTACION_PROD'];
+  }
+}
+
 // Procesamiento del formulario
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $id_producto_editar = isset($_POST['id_producto_editar']) ? trim($_POST['id_producto_editar']) : '';
   $nombre = trim($_POST['productname']);
   $presentacion = trim($_POST['presentacionproducto']);
+  $nueva_presentacion = trim($_POST['nueva_presentacion']);
   $medida_cantidad = trim($_POST['medida_cantidad']);
   $medida_unidad = trim($_POST['medida_unidad']);
   $categoria_id = trim($_POST['categoriaSeleccionada']);
   $nueva_categoria = trim($_POST['nueva_categoria']);
   $stock_minimo = trim($_POST['stockminimo']);
+
+  // Usar la nueva presentación si se ingresó
+  if ($nueva_presentacion !== '') {
+    $presentacion = $nueva_presentacion;
+  }
 
   // Concatenar medida a la presentación si se ingresó
   if ($medida_cantidad !== '' && $medida_unidad !== '') {
@@ -220,7 +235,7 @@ $conn->close();
     aria-hidden="true">
     <div class="modal-dialog">
       <form class="modal-content" id="formularioProducto" method="POST" action=""
-        onsubmit="return finalizarFormulario();">
+        onsubmit="return validarPresentacion();">
         <input type="hidden" id="id_producto_editar" name="id_producto_editar" value="">
         <div class="modal-header">
           <h5 class="modal-title" id="modalCrearProductoLabel">Crear Producto</h5>
@@ -235,21 +250,19 @@ $conn->close();
             </div>
             <div class="col-12">
               <label for="presentacionproducto" class="form-label">Presentación del producto</label>
-              <select class="form-control" id="presentacionproducto" name="presentacionproducto" required>
-                <option value="">Seleccione una presentación</option>
-                <option value="SOLIDO ORAL">SOLIDO ORAL</option>
-                <option value="LIQUIDO ORAL">LIQUIDO ORAL</option>
-                <option value="SOLUCION PARENTAL">SOLUCION PARENTAL</option>
-                <option value="SOLUCION INYECTABLE">SOLUCION INYECTABLE</option>
-                <option value="SEMISOLIDO CUTANEO">SEMISOLIDO CUTANEO</option>
-                <option value="SOLIDO PARENTERAL">SOLIDO PARENTERAL</option>
-                <option value="SOLUCION OFTALMICA">SOLUCION OFTALMICA</option>
-                <option value="SEMISOLIDO OFTALMICO">SEMISOLIDO OFTALMICO</option>
-                <option value="SOLUCION OTICA">SOLUCION OTICA</option>
-                <option value="SOLUCION ORAL">SOLUCION ORAL</option>
-                <option value="SUSPENSION ORAL">SUSPENSION ORAL</option>
-                <option value="SUSPENSION OFTALMICA">SUSPENSION OFTALMICA</option>
-              </select>
+              <div class="input-group mb-2">
+                <select class="form-control" id="presentacionproducto" name="presentacionproducto">
+                  <option value="">Seleccione una presentación</option>
+                  <?php foreach ($presentaciones as $pres): ?>
+                    <option value="<?php echo htmlspecialchars($pres); ?>"><?php echo htmlspecialchars($pres); ?></option>
+                  <?php endforeach; ?>
+                </select>
+                <button type="button" class="btn btn-outline-secondary" id="btnAgregarPresentacion" title="Agregar nueva presentación">
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+              <input type="text" class="form-control mt-2 d-none" id="nueva_presentacion" name="nueva_presentacion" placeholder="O escriba una nueva presentación" oninput="this.value = this.value.toUpperCase()" />
+              <small class="text-muted">Seleccione una presentación existente o escriba una nueva.</small>
             </div>
             <div class="col-12 d-flex align-items-end mb-2">
               <div style="flex:2;">
@@ -346,9 +359,34 @@ $conn->close();
   </div>
   <script src="js/models.js"></script>
   <script src="js/navbar-submenu.js"></script>
-    <script src="js/valitationInputs.js"></script><!--valida inputs -->
+  <script src="js/valitationInputs.js"></script><!--valida inputs -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
+    // --- PRESENTACIÓN DINÁMICA ---
+    document.getElementById('btnAgregarPresentacion').addEventListener('click', function() {
+      var inputNueva = document.getElementById('nueva_presentacion');
+      if (inputNueva.classList.contains('d-none')) {
+        inputNueva.classList.remove('d-none');
+        inputNueva.required = true;
+        inputNueva.focus();
+      } else {
+        inputNueva.classList.add('d-none');
+        inputNueva.required = false;
+        inputNueva.value = '';
+      }
+    });
+    // Si el usuario escribe una nueva presentación, deselecciona el select
+    document.getElementById('nueva_presentacion').addEventListener('input', function() {
+      if (this.value.trim() !== '') {
+        document.getElementById('presentacionproducto').value = '';
+      }
+    });
+    // Si el usuario selecciona una presentación, limpia el input de nueva
+    document.getElementById('presentacionproducto').addEventListener('change', function() {
+      if (this.value !== '') {
+        document.getElementById('nueva_presentacion').value = '';
+      }
+    });
     // --- EDICIÓN DE PRODUCTO ---
     document.querySelectorAll('.btn-editar-producto').forEach(btn => {
       btn.addEventListener('click', function() {
@@ -387,6 +425,21 @@ $conn->close();
       document.getElementById('id_producto_editar').value = '';
       document.getElementById('modalCrearProductoLabel').textContent = 'Crear Producto';
     });
+
+    function validarPresentacion() {
+      var select = document.getElementById('presentacionproducto');
+      var input = document.getElementById('nueva_presentacion');
+      if ((select.value === '' || select.value === null) && input.value.trim() === '') {
+        alert('Debe seleccionar o escribir una presentación.');
+        if (!input.classList.contains('d-none')) {
+          input.focus();
+        } else {
+          select.focus();
+        }
+        return false;
+      }
+      return true;
+    }
   </script>
   <div class="wave-container">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"

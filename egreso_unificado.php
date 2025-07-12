@@ -166,16 +166,21 @@ $conn->close();
     <form method="POST" id="formEgresos">
       <!-- Ingreso del Nombre del paciente -->
       <?php if ($tipo === 'normal'): ?>
-      <div class="mb-3">
-        <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
-        <select name="paciente" id="paciente" class="form-select" required>
-          <option value="" disabled selected>Seleccione un paciente</option>
-          <?php foreach ($pacientes as $p): ?>
-            <option value="<?= htmlspecialchars($p['id_paciente']) ?>">
-              <?= htmlspecialchars($p['nombre_paciente'] . ' ' . $p['apellido_paciente']) ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
+      <div class="mb-3 d-flex align-items-end gap-2">
+        <div style="flex:1">
+          <label for="paciente" class="form-label fw-bold">Nombre del Paciente</label>
+          <select name="paciente" id="paciente" class="form-select" required>
+            <option value="" disabled selected>Seleccione un paciente</option>
+            <?php foreach ($pacientes as $p): ?>
+              <option value="<?= htmlspecialchars($p['id_paciente']) ?>">
+                <?= htmlspecialchars($p['nombre_paciente'] . ' ' . $p['apellido_paciente']) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
+        <a href="paciente.php" class="btn btn-outline-primary mb-1" title="Agregar paciente" style="white-space:nowrap;">
+          <i class="bi bi-person-plus"></i> Agregar Paciente
+        </a>
       </div>
       <!-- Campo para el motivo del egreso -->
       <div class="mb-3">
