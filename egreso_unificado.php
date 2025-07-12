@@ -15,7 +15,7 @@ $conexion = new Conexion();
 $conn = $conexion->connect();
 $codigo_bodega_actual = $_SESSION['bodega'] ?? 0;
 
-$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD, stock_act_prod FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
+$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD, stock_act_prod, PRESENTACION_PROD FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
 $stmt_prod->bind_param("s", $codigo_bodega_actual);
 $stmt_prod->execute();
 $res_prod = $stmt_prod->get_result();
@@ -230,7 +230,7 @@ $conn->close();
               <?php foreach ($productos as $prod): ?>
                 <option value="<?= htmlspecialchars($prod['id_prooducto']) ?>"
                   data-stock="<?= htmlspecialchars($prod['stock_act_prod']) ?>">
-                  <?= htmlspecialchars($prod['NOM_PROD']) ?> (Stock: <?= htmlspecialchars($prod['stock_act_prod']) ?>)
+                  <?= htmlspecialchars($prod['NOM_PROD']) ?> <?= htmlspecialchars($prod['PRESENTACION_PROD']) ?> (Stock: <?= htmlspecialchars($prod['stock_act_prod']) ?>)
                 </option>
               <?php endforeach; ?>
             </select>

@@ -15,7 +15,7 @@ $conexion = new Conexion();
 $conn = $conexion->connect();
 
 $codigo_bodega_actual = $_SESSION['bodega'] ?? 0; // Obtener la bodega de la sesión
-$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
+$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD, PRESENTACION_PROD FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
 $stmt_prod->bind_param("s", $codigo_bodega_actual); // 'i' porque el código de bodega es un entero
 $stmt_prod->execute();
 $res_prod = $stmt_prod->get_result();
@@ -187,6 +187,7 @@ $conn->close();
                 <?php foreach ($productos as $prod): ?>
                   <option value="<?= htmlspecialchars($prod['id_prooducto']) ?>">
                     <?= htmlspecialchars($prod['NOM_PROD']) ?>
+                    <?= htmlspecialchars($prod['PRESENTACION_PROD']) ?>
                   </option>
                 <?php endforeach; ?>
               </select>
