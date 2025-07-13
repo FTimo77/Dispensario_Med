@@ -1,59 +1,5 @@
 <?php
-
-    session_start();
-
- if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
-     session_destroy();
-     header("Location: index.php");
-     exit;
- }
-require_once "./config/conexion.php";
-
-require_once "./includes/usuario_manager.php";
-
-
-
-$conexion = new Conexion();
-$conexion = $conexion->connect();
-
-
-$usuarioManager = new UsuarioManager($conexion);
-// Eliminar lógicamente al usuario
-if (isset($_GET['id_usuario'])) {
-    $id_usuario =  $_GET['id_usuario'];
-    $usuarioManager->eliminar($id_usuario);
-    header("Location: users.php");
-    exit();
-}
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre_usuario = $_POST['nuevoUsuario'];
-    $cod_rol = $_POST['nuevoRol'];
-    $pass_usuario = $_POST['nuevoPassword'];
-    $estado = $_POST['estado'];
-    $agregarEditar = $_POST['agregarEditar'];
-    if ($agregarEditar == "agregar") {
-        $estado = 1; // Siempre activo al crear
-        if ($usuarioManager->insertar($cod_rol, $nombre_usuario, $pass_usuario, $estado)) {
-            header("Location: users.php");
-            exit();
-        } else {
-            echo "<script>alert('" . $usuarioManager->mensaje . "');</script>";
-        }
-    } else if ($agregarEditar == "editar") {
-        $id_usuario = $_POST['idUsuario'];
-        if ($usuarioManager->editar($id_usuario, $cod_rol, $nombre_usuario, $pass_usuario, $estado)) {
-            header("Location: users.php");
-            exit();
-        } else {
-            echo "<script>alert('" . $usuarioManager->mensaje . "');</script>";
-        }
-    }
-}
-
-
-// Las funciones insert_usuario, editarUsuario y eliminar_usuario ya no son necesarias, todo se maneja por la clase UsuarioManager
+require_once '../controllers/usuario_controller.php';
 ?>
 
 
@@ -62,10 +8,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
   <meta charset="UTF-8" />
   <title>Gestión de Usuarios</title>
-  <link rel="icon" href="./assets/icons/capsule-pill.svg" type="image/x-icon">
+  <link rel="icon" href="../assets/icons/capsule-pill.svg" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
     .btn_editar { color: green; }
@@ -74,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 
 <body class="bg-light">
-<?php include 'includes/navbar.php'; ?>
+<?php include '../includes/navbar.php'; ?>
 <div class="container py-5">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0 px-3 py-2 rounded" style="background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">Usuarios</h2>
@@ -98,12 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           </thead>
           <tbody id="tablaUsuarios">
             <?php
-            require_once "config/conexion.php";
-            require_once "includes/usuario_model.php";
-            $con = new Conexion();
-            $con = $con->connect();
-            $usuarios = obtenerUsuarios($con, false); // false = solo activos
-
             if ($usuarios) {
                 foreach ($usuarios as $usuario) {
                     echo "<tr>";
@@ -151,18 +91,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <select class="form-select" id="nuevoRol" name="nuevoRol" required>
             <option id="rol" value="">Seleccione</option>
             <?php
-              require_once "config/conexion.php";
-              require_once "includes/usuario_model.php";
-              $con = new Conexion();
-              $con = $con->connect(); 
-              $roles = obtenerRoles($con);
-              if ($roles) {
-                  foreach ($roles as $rol) {
-                      echo '<option value="' . $rol['COD_ROL'] . '">' . htmlspecialchars($rol['NOMBRE_ROL']) . '</option>';
-                  }
-              } else {
-                  echo "<option>No hay roles disponibles</option>";
-              }
+            if ($roles) {
+                foreach ($roles as $rol) {
+                    echo '<option value="' . $rol['COD_ROL'] . '">' . htmlspecialchars($rol['NOMBRE_ROL']) . '</option>';
+                }
+            } else {
+                echo "<option>No hay roles disponibles</option>";
+            }
             ?>
           </select>
         </div>
@@ -204,9 +139,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </div>
 </div>
 
-<script src="js/navbar-submenu.js"></script>
-<script src="js/models.js"></script>
-<script src="js/valitationInputs.js"></script><!--valida inputs -->
+<script src="../js/navbar-submenu.js"></script>
+<script src="../js/models.js"></script>
+<script src="../js/valitationInputs.js"></script><!--valida inputs -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -303,7 +238,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     return true;
 }
 </script>
-<script src="js/validaciones.js"></script>
+<script src="../js/validaciones.js"></script>
 
 </body>
 </html>

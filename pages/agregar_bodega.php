@@ -1,118 +1,4 @@
-<?php
-session_start();
-
-if (!isset($_SESSION['usuario']) && !isset($_SESSION['bodega'])) {
-    session_destroy();
-    header("Location: index.php");
-    exit;
-}
-require_once 'config/conexion.php';
-
-$mensaje = "";
-
-// Conexión
-$conexion = new Conexion();
-$conn = $conexion->connect();
-
-
-
-// Eliminar bodega (cambiar estado a 0)
-if (isset($_GET['eliminar'])) {
-    $codigoEliminar = $_GET['eliminar'];
-    $stmt = $conn->prepare("UPDATE bodega SET estado_bodega=0 WHERE codigo_bodega=?");
-    if (!$stmt) {
-        die("Error en la preparación de la consulta: " . $conn->error);
-    }
-    $stmt->bind_param("s", $codigoEliminar);
-    if ($stmt->execute()) {
-        $mensaje = '<div class="alert alert-success text-center">Bodega eliminada correctamente.</div>';
-    } else {
-        $mensaje = '<div class="alert alert-danger text-center">Error al eliminar la bodega.</div>';
-    }
-    $stmt->close();
-}
-// Editar bodega 
-if (isset($_POST['editar_descripcion_bodega']) && isset($_POST['editar_codigo_bodega'])) {
-    $descripcionBodega = $_POST['editar_descripcion_bodega'];
-    $codigoBodega = $_POST['editar_codigo_bodega'];
-
-    $stmt = $conn->prepare("UPDATE bodega SET descripcion=? WHERE codigo_bodega=?");
-    if (!$stmt) {
-        die("Error en la preparación de la consulta: " . $conn->error);
-    }
-
-    $stmt->bind_param("ss", $descripcionBodega, $codigoBodega);
-
-    if ($stmt->execute()) {
-        $mensaje = '<div class="alert alert-success text-center">Bodega editada correctamente.</div>';
-    } else {
-        $mensaje = '<div class="alert alert-danger text-center">Error al editar la bodega.</div>';
-    }
-
-    $stmt->close();
-}
-
-
-// Insertar nueva bodega
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['codigo_bodega'])) {
-    $descripcion = trim($_POST['descripcion_bodega']);
-    $estado = 1; // Siempre activo al crear
-
-    if ($descripcion !== "") {
-        $stmt = $conn->prepare("INSERT INTO bodega (descripcion, estado_bodega) VALUES (?, ?)");
-        if (!$stmt) {
-            die("Error en la preparación de la consulta: " . $conn->error);
-        }
-        $stmt->bind_param("si", $descripcion, $estado);
-        if ($stmt->execute()) {
-            $mensaje = '<div class="alert alert-success text-center">Bodega creada correctamente.</div>';
-            // Refrescar la página para mostrar la nueva bodega
-            header("Location: agregar_bodega.php");
-            exit;
-        } else {
-            $mensaje = '<div class="alert alert-danger text-center">Error al crear la bodega.</div>';
-        }
-        $stmt->close();
-    } else {
-        $mensaje = '<div class="alert alert-warning text-center">Todos los campos son obligatorios.</div>';
-    }
-}
-
-// Actualizar bodega existente
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['codigo_bodega'])) {
-    $codigo = $_POST['codigo_bodega'];
-    $descripcion = trim($_POST['editar_descripcion_bodega']);
-
-    if ($descripcion !== "") {
-        $stmt = $conn->prepare("UPDATE bodega SET descripcion=? WHERE codigo_bodega=?");
-        if (!$stmt) {
-            die("Error en la preparación de la consulta: " . $conn->error);
-        }
-        $stmt->bind_param("ss", $descripcion, $codigo);
-        if ($stmt->execute()) {
-            $mensaje = '<div class="alert alert-success text-center">Bodega actualizada correctamente.</div>';
-            // Refrescar la página para mostrar los cambios
-            header("Location: agregar_bodega.php");
-            exit;
-        } else {
-            $mensaje = '<div class="alert alert-danger text-center">Error al actualizar la bodega.</div>';
-        }
-        $stmt->close();
-    } else {
-        $mensaje = '<div class="alert alert-warning text-center">Todos los campos son obligatorios.</div>';
-    }
-}
-
-// Obtener bodegas activas
-$bodegas = [];
-$result = $conn->query("SELECT codigo_bodega, descripcion, estado_bodega FROM bodega WHERE estado_bodega = 1");
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        $bodegas[] = $row;
-    }
-}
-$conn->close();
-?>
+<?php include __DIR__ . '/../controllers/bodega_controller.php'; ?>
 
 
 
@@ -123,14 +9,14 @@ $conn->close();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Gestión de Bodegas</title>
-    <link rel="icon" href="./assets/icons/capsule-pill.svg" type="image/x-icon">
+    <link rel="icon" href="../assets/icons/capsule-pill.svg" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../css/style.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 </head>
 
 <body class="bg-light">
-    <?php include 'includes/navbar.php'; ?>
+    <?php include '../includes/navbar.php'; ?>
     <div class="container py-5 fade-in">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0 px-3 py-2 rounded"
@@ -165,7 +51,7 @@ $conn->close();
                                             onclick="editarBodega('<?= htmlspecialchars($bodega['codigo_bodega'], ENT_QUOTES) ?>', '<?= htmlspecialchars($bodega['descripcion'], ENT_QUOTES) ?>')">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>
-                                        <a href="?eliminar=<?= urlencode($bodega['codigo_bodega']) ?>"
+                                        <a href="../controllers/bodega_controller.php?eliminar=<?= urlencode($bodega['codigo_bodega']) ?>"
                                             class="btn btn-sm btn-outline-danger" title="Eliminar"
                                             onclick="return confirm('¿Desea eliminar esta bodega?');">
                                             <i class="bi bi-trash"></i>
@@ -189,7 +75,7 @@ $conn->close();
     <div class="modal fade" id="modalCrearBodega" tabindex="-1" aria-labelledby="modalCrearBodegaLabel"
         aria-hidden="true">
         <div class="modal-dialog">
-            <form class="modal-content" id="formCrearBodega" method="POST" action="">
+            <form class="modal-content" id="formCrearBodega" method="POST" action="../controllers/bodega_controller.php">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalCrearBodegaLabel">Crear Bodega</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -212,7 +98,7 @@ $conn->close();
     <div class="modal fade" id="modalEditarBodega" tabindex="-1" aria-labelledby="modalEditarBodegaLabel"
         aria-hidden="true">
         <div class="modal-dialog">
-            <form class="modal-content" id="formEditarBodega" method="POST" action="">
+            <form class="modal-content" id="formEditarBodega" method="POST" action="../controllers/bodega_controller.php">
                 <div class="modal-header">
                     <h5 class="modal-title" id="modalEditarBodegaLabel">Editar Bodega</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
@@ -233,8 +119,8 @@ $conn->close();
         </div>
     </div>
 
-    <script src="js/models.js"></script>
-    <script src="js/navbar-submenu.js"></script>
+    <script src="../js/models.js"></script>
+    <script src="../js/navbar-submenu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Función para abrir el modal de edición con los datos actuales

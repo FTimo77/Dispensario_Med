@@ -3,11 +3,11 @@ session_start();
 
 if (!isset($_SESSION['usuario']) && !isset($_SESSION['bodega'])) {
     session_destroy();
-    header("Location: index.php");
+    header("Location: ../../index.php");
     exit;
 }
 
-require_once 'config/conexion.php';
+require_once '../../config/conexion.php';
 
 $conexion = new Conexion();
 $conn = $conexion->connect();
@@ -113,13 +113,13 @@ $conn->close();
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Reporte de Recetas Emitidas</title>
-    <link rel="icon" href="./assets/icons/capsule-pill.svg" type="image/x-icon">
+    <link rel="icon" href="../../assets/icons/capsule-pill.svg" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../../css/style.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 </head>
 <body class="bg-light">
-    <?php include 'includes/navbar.php'; ?>
+    <?php include '../../includes/navbar.php'; ?>
     <div class="container py-5 fade-in">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="mb-0 px-3 py-2 rounded"
@@ -256,8 +256,8 @@ $conn->close();
       </div>
     </div>
 
-    <script src="js/models.js"></script>
-    <script src="js/navbar-submenu.js"></script>
+    <script src="../../js/models.js"></script>
+    <script src="../../js/navbar-submenu.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Scrips para Exportar pdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>

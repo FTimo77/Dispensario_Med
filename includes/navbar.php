@@ -68,14 +68,16 @@ if ($nombre_rol === 'ADMIN') {
 
 // Función para renderizar items del menú
 function renderMenuItem($item) {
+    // Detectar si estamos en /pages/reportes o en /pages
+    $script = $_SERVER['SCRIPT_NAME'];
+    $in_reportes = (strpos($script, '/reportes/') !== false);
+
     if ($item['tipo'] ?? '' === 'header') {
         return '<li><h6 class="dropdown-header">' . htmlspecialchars($item['titulo']) . '</h6></li>';
     }
-    
     if ($item['tipo'] ?? '' === 'divider') {
         return '<li><hr class="dropdown-divider" /></li>';
     }
-    
     if (isset($item['submenu'])) {
         $html = '<li class="dropdown-submenu">';
         $html .= '<a class="dropdown-item dropdown-toggle" href="#">';
@@ -89,8 +91,23 @@ function renderMenuItem($item) {
         $html .= '</li>';
         return $html;
     }
-    
-    return '<li><a class="dropdown-item" href="' . $item['url'] . '">' .
+    $url = $item['url'];
+    // Si es un reporte
+    if (strpos($url, 'reporte_') === 0) {
+        $url = $in_reportes ? './' . $url : './reportes/' . $url;
+    }
+    // Si es un archivo PHP principal
+    elseif (in_array($url, [
+        'users.php', 'paciente.php', 'rol_user.php', 'agregar_bodega.php', 'producto.php',
+        'ingreso.php', 'egreso_unificado.php', 'egreso.php', 'menu_principal.php', 'primer_ingreso.php'
+    ])) {
+        $url = $in_reportes ? '../' . $url : './' . $url;
+    }
+    // Si es logout.php, va a ../includes/
+    elseif ($url === 'includes/logout.php') {
+        $url = $in_reportes ? '../../includes/logout.php' : '../includes/logout.php';
+    }
+    return '<li><a class="dropdown-item" href="' . $url . '">' .
            '<i class="' . $item['icono'] . '"></i> ' . htmlspecialchars($item['titulo']) . '</a></li>';
 }
 
@@ -105,7 +122,13 @@ function shouldShowMenu($menu_config, $user_role) {
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
   <div class="container">
-    <a class="navbar-brand" href="menu_principal.php"><i class="bi bi-house-door"></i> Menú General</a>
+    <?php
+    // Detectar si estamos en /pages/reportes o en /pages
+    $script = $_SERVER['SCRIPT_NAME'];
+    $in_reportes = (strpos($script, '/reportes/') !== false);
+    $home_href = $in_reportes ? '../menu_principal.php' : './menu_principal.php';
+    ?>
+    <a class="navbar-brand" href="<?php echo $home_href; ?>"><i class="bi bi-house-door"></i> Menú General</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
       aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>

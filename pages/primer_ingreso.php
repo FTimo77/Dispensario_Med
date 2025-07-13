@@ -1,6 +1,7 @@
+
 <?php
-require_once 'config/conexion.php';
-require_once 'includes/usuario_manager.php';
+require_once '../config/conexion.php';
+require_once '../includes/usuario_manager.php';
 
 $conexion = new Conexion();
 $conn = $conexion->connect();
@@ -12,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crear_inicial"])) {
     $exito = $usuarioManager->registrarConBodega($_POST['nuevo_usuario'], $_POST['nueva_clave'], $_POST['nombre_bodega']);
     $mensaje = $usuarioManager->mensaje;
     if ($exito) {
-        header("Location: index.php");
+        header("Location: ../index.php");
         exit;
     }
 }
@@ -24,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crear_inicial"])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Primer ingreso</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body class="bg-light">
     <div class="container d-flex justify-content-center align-items-center min-vh-100 fade-in">
@@ -55,7 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["crear_inicial"])) {
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/validaciones.js"></script>
+    <script src="../js/validaciones.js"></script>
     <script>
         function validarFormularioUsuario() {
             const pass = document.getElementById('nuevoPassword').value;

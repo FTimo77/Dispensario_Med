@@ -1,160 +1,5 @@
 <?php
-
-  session_start();
-
-if (!isset($_SESSION['usuario']) &&  !isset($_SESSION['bodega'])) {
-    session_destroy();
-    header("Location: index.php");
-    exit;
-}
-
-$mensaje = "";
-if (isset($_GET['success'])) {
-  if ($_GET['success'] == 1) {
-    $mensaje = "Categoría y producto agregados correctamente.";
-  } elseif ($_GET['success'] == 2) {
-    $mensaje = "Producto eliminado correctamente.";
-  } elseif ($_GET['success'] == 3) {
-    $mensaje = "Categoría eliminada correctamente.";
-  } elseif ($_GET['success'] == 4) {
-    $mensaje = "Producto actualizado correctamente.";
-  }
-}
-
-require_once 'config/conexion.php';
-require_once 'includes/producto_model.php';
-
-// Conexión
-$conexion = new Conexion();
-$conn = $conexion->connect();
-
-// Eliminar producto (cambio de estado a 0)
-if (isset($_GET['eliminar'])) {
-  $idEliminar = intval($_GET['eliminar']);
-  $stmt = $conn->prepare("UPDATE producto SET estado_prod=0 WHERE id_prooducto=?");
-  $stmt->bind_param("i", $idEliminar);
-  if ($stmt->execute()) {
-    header("Location: producto.php?success=2");
-    exit;
-  } else {
-    $mensaje = "Error al eliminar el producto.";
-  }
-  $stmt->close();
-}
-
-// Elimina categoría (cambio de estado a 0)
-if (isset($_GET['eliminar_categoria'])) {
-  $idCatEliminar = intval($_GET['eliminar_categoria']);
-  $stmt = $conn->prepare("UPDATE categoria SET estado_cat=0 WHERE id_categoria=?");
-  if (!$stmt) {
-    $mensaje = "Error en la preparación de la consulta: " . $conn->error;
-  } else {
-    $stmt->bind_param("i", $idCatEliminar);
-    if ($stmt->execute()) {
-      header("Location: producto.php?success=3");
-      exit;
-    } else {
-      // Error 1451 = restricción de clave foránea (productos asociados)
-      if ($conn->errno == 1451) {
-        $mensaje = "No se puede eliminar la categoría porque tiene productos asociados.";
-      } else {
-        $mensaje = "Error al eliminar la categoría.";
-      }
-    }
-    $stmt->close();
-  }
-}
-
-// Cargar categorías para el select
-$categorias = [];
-$result = $conn->query("SELECT id_categoria, nombre_cat FROM categoria WHERE estado_cat = 1");
-if ($result) {
-  while ($row = $result->fetch_assoc()) {
-    $categorias[] = $row;
-  }
-}
-
-// Cargar presentaciones distintas para el select
-$presentaciones = [];
-$resultPres = $conn->query("SELECT DISTINCT PRESENTACION_PROD FROM producto WHERE PRESENTACION_PROD IS NOT NULL AND PRESENTACION_PROD != ''");
-if ($resultPres) {
-  while ($row = $resultPres->fetch_assoc()) {
-    $presentaciones[] = $row['PRESENTACION_PROD'];
-  }
-}
-
-// Procesamiento del formulario
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-  $id_producto_editar = isset($_POST['id_producto_editar']) ? trim($_POST['id_producto_editar']) : '';
-  $nombre = trim($_POST['productname']);
-  $presentacion = trim($_POST['presentacionproducto']);
-  $nueva_presentacion = trim($_POST['nueva_presentacion']);
-  $medida_cantidad = trim($_POST['medida_cantidad']);
-  $medida_unidad = trim($_POST['medida_unidad']);
-  $categoria_id = trim($_POST['categoriaSeleccionada']);
-  $nueva_categoria = trim($_POST['nueva_categoria']);
-  $stock_minimo = trim($_POST['stockminimo']);
-
-  // Usar la nueva presentación si se ingresó
-  if ($nueva_presentacion !== '') {
-    $presentacion = $nueva_presentacion;
-  }
-
-  // Concatenar medida a la presentación si se ingresó
-  if ($medida_cantidad !== '' && $medida_unidad !== '') {
-    $presentacion .= ' - ' . $medida_cantidad . ' ' . $medida_unidad;
-  }
-
-  if ($nombre !== "" && $presentacion !== "" && ($categoria_id !== "" || $nueva_categoria !== "")) {
-    // Si se ingresó una nueva categoría
-    if ($nueva_categoria !== "") {
-      $stmt_cat = $conn->prepare("INSERT INTO categoria (nombre_cat, estado_cat) VALUES (?, 1)");
-      $stmt_cat->bind_param("s", $nueva_categoria);
-      if ($stmt_cat->execute()) {
-        $categoria_id = $conn->insert_id;
-        $stmt_cat->close();
-      } else {
-        $mensaje = "Error al crear la categoría.";
-        $stmt_cat->close();
-      }
-    }
-    // Si es edición
-    if ($id_producto_editar !== "") {
-      $stmt = $conn->prepare("UPDATE producto SET NOM_PROD=?, PRESENTACION_PROD=?, id_categoria=?, stock_min_prod=? WHERE id_prooducto=?");
-      if (!$stmt) {
-        $mensaje = "Error en la preparación de la consulta: " . $conn->error;
-      } else {
-        $stmt->bind_param("ssiii", $nombre, $presentacion, $categoria_id, $stock_minimo, $id_producto_editar);
-        if ($stmt->execute()) {
-          header("Location: producto.php?success=4");
-          exit;
-        } else {
-          $mensaje = "Error al actualizar el producto.";
-        }
-        $stmt->close();
-      }
-    } else {
-      // Insertar producto solo si hay un id de categoría válido
-      if ($categoria_id !== "") {
-        if (agregarProducto($conn, $nombre, $presentacion, $categoria_id, $_SESSION['bodega'], $stock_minimo)) {
-          if ($mensaje == "") {
-            $mensaje = "Producto creado correctamente.";
-          }
-          header("Location: producto.php?success=1");
-          exit;
-        } else {
-          $mensaje = "Error al crear el producto.";
-        }
-      }
-    }
-  } else {
-    $mensaje = "Todos los campos son obligatorios.";
-  }
-}
-
-// Cargar productos con su categoría usando el modelo
-$productos = obtenerProductos($conn,$_SESSION['bodega']);
-$conn->close();
+require_once '../controllers/producto_controller.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -163,14 +8,14 @@ $conn->close();
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Crear Producto</title>
-  <link rel="icon" href="./assets/icons/capsule-pill.svg" type="image/x-icon">
+  <link rel="icon" href="../assets/icons/capsule-pill.svg" type="image/x-icon">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
 </head>
 
 <body class="bg-light">
-  <?php include 'includes/navbar.php'; ?>
+  <?php include '../includes/navbar.php'; ?>
   <div class="container py-5 fade-in">
     <div class="d-flex justify-content-between align-items-center mb-4">
       <h2 class="mb-0 px-3 py-2 rounded"
@@ -207,15 +52,15 @@ $conn->close();
                   <td class="text-end">
                     <!-- Icono Editar -->
                     <button type="button" class="btn btn-sm btn-outline-primary me-2 btn-editar-producto" title="Editar"
-                      data-id="<?php echo $prod['id_prooducto']; ?>"
+                      data-id="<?php echo $prod['ID_PROODUCTO']; ?>"
                       data-nombre="<?php echo htmlspecialchars($prod['NOM_PROD']); ?>"
                       data-presentacion="<?php echo htmlspecialchars($prod['PRESENTACION_PROD']); ?>"
-                      data-categoria="<?php echo $prod['id_categoria'] ?? ''; ?>"
-                      data-stockmin="<?php echo htmlspecialchars($prod['stock_minimo'] ?? ''); ?>">
+                      data-categoria="<?php echo $prod['ID_CATEGORIA'] ?? ''; ?>"
+                      data-stockmin="<?php echo htmlspecialchars($prod['STOCK_MIN_PROD'] ?? ''); ?>">
                       <i class="bi bi-pencil-square"></i>
                     </button>
                     <!-- Icono Eliminar -->
-                    <a href="producto.php?eliminar=<?php echo $prod['id_prooducto']; ?>"
+                    <a href="producto.php?eliminar=<?php echo $prod['ID_PROODUCTO']; ?>"
                       class="btn btn-sm btn-outline-danger" title="Eliminar"
                       onclick="return confirm('¿Desea eliminar este producto?');">
                       <i class="bi bi-trash"></i>
@@ -357,9 +202,9 @@ $conn->close();
       </div>
     </div>
   </div>
-  <script src="js/models.js"></script>
-  <script src="js/navbar-submenu.js"></script>
-  <script src="js/valitationInputs.js"></script><!--valida inputs -->
+  <script src="../js/models.js"></script>
+  <script src="../js/navbar-submenu.js"></script>
+  <script src="../js/valitationInputs.js"></script><!--valida inputs -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // --- PRESENTACIÓN DINÁMICA ---

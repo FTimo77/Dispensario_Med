@@ -1,93 +1,4 @@
-<?php
-session_start();
-$mensaje = "";
-$intento_login = false;
-
-// Mostrar mensaje si viene de la redirección con error
-if (isset($_GET['error']) && $_GET['error'] == 1) {
-    $mensaje = "Usuario o clave incorrectos";
-    $intento_login = true;
-}
-
-// --- NUEVO BLOQUE: Verificar si existen usuarios y bodegas, si no, redirigir ---
-require_once 'config/conexion.php';
-require_once 'includes/usuario_model.php';
-require_once 'includes/bodega_model.php';
-
-$conexion = new Conexion();
-$conn_check = $conexion->connect();
-
-// Verifica usuarios
-$res_usuarios = $conn_check->query("SELECT COUNT(*) AS total FROM usuario");
-$row_usuarios = $res_usuarios ? $res_usuarios->fetch_assoc() : ['total' => 0];
-$hay_usuarios = intval($row_usuarios['total']) > 0;
-
-// Verifica bodegas
-$res_bodegas = $conn_check->query("SELECT COUNT(*) AS total FROM bodega");
-$row_bodegas = $res_bodegas ? $res_bodegas->fetch_assoc() : ['total' => 0];
-$hay_bodegas = intval($row_bodegas['total']) > 0;
-
-// SOLO redirige si NO hay usuarios Y NO hay bodegas
-if (!$hay_usuarios) {
-    header("Location: primer_ingreso.php");
-    exit;
-}
-// --- FIN NUEVO BLOQUE ---
-
-// Procesamiento del login
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["login"])) {
-    $intento_login = true;
-    require_once 'config/conexion.php';
-    require_once 'includes/usuario_model.php';
-
-    $usuario = trim($_POST['nombre_usuario']);
-    $clave = trim($_POST['pass_usuario']);
-    $bodega = $_POST['bodega_seleccionada'];
-
-    if ($usuario === "" || $clave === "" || $bodega === "") {
-        $mensaje = "Por favor, complete todos los campos.";
-    } else {
-        $conexion = new Conexion();
-        $conn = $conexion->connect();
-
-        // NOTA: La función validarUsuario() debe ser modificada para que devuelva un array con el rol y el ID.
-        // Ejemplo de retorno: ['rol' => 'admin', 'id' => 1]
-        $datos_usuario = validarUsuario($conn, $usuario, $clave);
-
-        if ($datos_usuario) {
-            require_once 'includes/obtener_nom_bodega.php';
-            $_SESSION['usuario'] = $usuario;
-            $_SESSION['bodega'] = $bodega;
-            $_SESSION['rol'] = $datos_usuario['rol'];
-            $_SESSION['id_usuario'] = $datos_usuario['id']; // <-- ID del usuario agregado a la sesión
-            obtenerNombreBodega($bodega); // Cargar el nombre de la bodega en la sesión
-            obtenerNombreRol($datos_usuario['rol']); // Cargar el nombre del rol en la sesión
-            header("Location: menu_principal.php");
-            mysqli_close($conn);
-            exit;
-        } else {
-            $_SESSION['usuario'] = null;
-            $_SESSION['bodega'] = null;
-            // Redirigir a la página de login con el mensaje
-            mysqli_close($conn);
-            header("Location: index.php?error=1");
-            exit;
-        }
-    }
-}
-// Si el usuario ya está logueado, redirigir al menú principal
-//if (isset($_SESSION['usuario']) && isset($_SESSION['bodega'])) {
-//  header("Location: menu_principal.html");
-//exit;
-//}
-
-// Cargar bodegas para el select (solo una vez)
-require_once 'config/conexion.php';
-require_once 'includes/bodega_model.php';
-$conexion = new Conexion();
-$conn = $conexion->connect();
-$bodegas = obtenerBodegasActivas($conn);
-?>
+<?php include __DIR__ . '/controllers/login_controller.php'; ?>
 <!doctype html>
 <html lang="es">
 
@@ -113,24 +24,53 @@ $bodegas = obtenerBodegasActivas($conn);
                 <input class="formulario_text form-control mb-3" id="pass_usuario" type="password" name="pass_usuario"
                     placeholder="Ingrese clave" required>
 
-                <label class="formulario__label" for="seleccionar_dispensario">Selecciona dispensario</label>
-                <select name="bodega_seleccionada" class="form-control mb-3" required>
-                    <option value="">Seleccione:</option>
-                    <?php
-                    if (!$conn) {
-                        echo "<option value='' disabled>Error al conectar</option>";
-                    } elseif (!$bodegas) {
-                        echo "<option value='' disabled>Error al ejecutar la consulta</option>";
-                    } elseif (mysqli_num_rows($bodegas) > 0) {
-                        while ($fila = mysqli_fetch_assoc($bodegas)) {
-                            echo "<option value='" . $fila['CODIGO_BODEGA'] . "'>" . $fila['DESCRIPCION'] . "</option>";
+
+                <label class="formulario__label" for="bodega_seleccionada">Selecciona dispensario</label>
+                <div class="input-group mb-3">
+                    <select name="bodega_seleccionada" id="bodega_seleccionada" class="form-control" required>
+                        <option value="">Seleccione:</option>
+                        <?php
+                        if (is_array($bodegas) && count($bodegas) > 0) {
+                            foreach ($bodegas as $fila) {
+                                echo "<option value='" . $fila['CODIGO_BODEGA'] . "'>" . $fila['DESCRIPCION'] . "</option>";
+                            }
+                        } else {
+                            echo "<option value='' disabled>No hay bodegas disponibles</option>";
                         }
-                    } else {
-                        echo "<option value='' disabled>No hay bodegas disponibles</option>";
-                    }
-                    mysqli_close($conn);
-                    ?>
-                </select>
+                        ?>
+                    </select>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+                <script>
+                    // Recargar la página al cerrar el modal si se agregó una bodega
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var form = document.getElementById('formNuevaBodega');
+                        if (form) {
+                            form.addEventListener('submit', function (e) {
+                                e.preventDefault();
+                                var nombre = document.getElementById('nueva_bodega').value.trim();
+                                if (!nombre) return;
+                                var formData = new FormData();
+                                formData.append('nueva_bodega', nombre);
+                                fetch('includes/procesar_bodega.php', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            var modal = bootstrap.Modal.getInstance(document.getElementById('modalBodega'));
+                                            modal.hide();
+                                            setTimeout(() => window.location.reload(), 400);
+                                        } else {
+                                            alert(data.message || 'Error al agregar la bodega');
+                                        }
+                                    })
+                                    .catch(() => alert('Error al agregar la bodega'));
+                            });
+                        }
+                    });
+                </script>
 
                 <div class="d-grid">
                     <input class="formulario__btn btn btn-primary" type="submit" name="login" value="Entrar">

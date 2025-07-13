@@ -1,93 +1,6 @@
+
 <?php
-session_start();
-
-if (!isset($_SESSION['usuario']) && !isset($_SESSION['bodega'])) {
-    session_destroy();
-    header("Location: index.php");
-    exit;
-}
-
-require_once "./config/conexion.php";
-require_once "./includes/usuario_model.php";
-
-$conexion = new Conexion();
-$conexion = $conexion->connect();
-
-// Eliminar lógicamente al usuario
-if (isset($_GET['id_usuario'])) {
-    $id_usuario = $_GET['id_usuario'];
-    eliminar_usuario($conexion, $id_usuario);
-    header("Location: paciente.php");
-    exit();
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nombre_p = $_POST['nombrep'];
-    $apellido_p = $_POST['apellidop'];
-    $empresa = isset($_POST['nuevaEmpresa']) && trim($_POST['nuevaEmpresa']) !== '' ? trim($_POST['nuevaEmpresa']) : $_POST['empresa'];
-    $agregarEditar = $_POST['agregarEditar'];
-
-    if ($agregarEditar == "agregar") {
-        $estado = '1'; // Siempre activo al crear
-        if (insert_usuario($conexion, $nombre_p, $apellido_p, $empresa, $estado)) {
-            header("Location: paciente.php");
-            exit();
-        } else {
-            echo "<script>alert('Error al agregar el paciente');</script>";
-        }
-    } elseif ($agregarEditar == "editar") {
-        $id_usuario = $_POST['idUsuario'];
-        $estado = '1'; // Siempre activo también al editar
-        if (editarUsuario($conexion, $id_usuario, $nombre_p, $apellido_p, $empresa, $estado)) {
-            header("Location: paciente.php");
-            exit();
-        } else {
-            echo "<script>alert('Error al editar el paciente');</script>";
-        }
-    }
-}
-
-function insert_usuario($conexion, $nombre_p, $apellido_p, $empresa, $estado) {
-    $stmt = $conexion->prepare("INSERT INTO pacientes (nombre_paciente, apellido_paciente , empresa, est_paciente) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $nombre_p, $apellido_p, $empresa, $estado);
-    return $stmt->execute();
-}
-
-function editarUsuario($conexion, $id_usuario, $nombre_p, $apellido_p, $empresa, $estado) {
-    $stmt = $conexion->prepare("UPDATE pacientes 
-        SET nombre_paciente = ?, 
-            apellido_paciente = ?, 
-            empresa = ?, 
-            est_paciente = ? 
-        WHERE id_paciente = ?");
-    $stmt->bind_param("ssssi", $nombre_p, $apellido_p, $empresa, $estado, $id_usuario);
-    return $stmt->execute();
-}
-
-
-function eliminar_usuario($conexion, $id_usuario) {
-    $stmt = $conexion->prepare("UPDATE pacientes SET est_paciente = 0 WHERE id_paciente = ?");
-    $stmt->bind_param("i", $id_usuario);
-    return $stmt->execute();
-}
-
-
-function obtenerPacientes($conexion) {
-    $query = "SELECT id_paciente, nombre_paciente, apellido_paciente, empresa, est_paciente FROM pacientes WHERE est_paciente = '1'";
-    $resultado = $conexion->query($query);
-
-    $pacientes = [];
-
-    if ($resultado && $resultado->num_rows > 0) {
-        while ($fila = $resultado->fetch_assoc()) {
-            $pacientes[] = $fila;
-        }
-    }
-
-    return $pacientes;
-}
-
-
+require_once '../controllers/paciente_controller.php';
 ?>
 
 
@@ -97,10 +10,10 @@ function obtenerPacientes($conexion) {
 <head>
   <meta charset="UTF-8" />
   <title>Gestión de Pacientes</title>
-  <link rel="icon" href="./assets/icons/capsule-pill.svg" type="image/x-icon">
+  <link rel="icon" href="../assets/icons/capsule-pill.svg" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="../css/style.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
   <style>
     .btn_editar { color: green; }
@@ -109,7 +22,7 @@ function obtenerPacientes($conexion) {
 </head>
 
 <body class="bg-light">
-<?php include 'includes/navbar.php'; ?>
+<?php include '../includes/navbar.php'; ?>
 <div class="container py-5">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2 class="mb-0 px-3 py-2 rounded" style="background: rgba(255, 255, 255, 0.85); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);">Pacientes</h2>
@@ -134,8 +47,7 @@ function obtenerPacientes($conexion) {
             </tr>
           </thead>
           <tbody>
-             <?php
-            $pacientes = obtenerPacientes($conexion);
+            <?php
             if ($pacientes) {
                 foreach ($pacientes as $p) {
                     echo "<tr>";
@@ -148,10 +60,10 @@ function obtenerPacientes($conexion) {
                     echo "<td><a href='?id_usuario=" . $p['id_paciente'] . "' onclick=\"return confirm('¿Estás seguro de eliminar este paciente?')\"><i class='bi bi-trash3-fill text-danger'></i></a></td>";
                     echo "</tr>";
                 }
-                } else {
-                    echo "<tr><td colspan='7' class='text-center'>No hay pacientes registrados.</td></tr>";
-                }
-                ?>
+            } else {
+                echo "<tr><td colspan='7' class='text-center'>No hay pacientes registrados.</td></tr>";
+            }
+            ?>
           </tbody>
         </table>
       </div>
@@ -187,14 +99,10 @@ function obtenerPacientes($conexion) {
         <select class="form-select" id="empresa" name="empresa">
           <option value="" selected>Seleccione una empresa</option>
           <?php
-            // Obtener empresas distintas de la tabla pacientes
-            $empresas = [];
-            $resultEmpresas = $conexion->query("SELECT DISTINCT empresa FROM pacientes WHERE empresa IS NOT NULL AND empresa != '' ORDER BY empresa ASC");
-            if ($resultEmpresas && $resultEmpresas->num_rows > 0) {
-              while ($row = $resultEmpresas->fetch_assoc()) {
-                $emp = htmlspecialchars($row['empresa']);
+            if ($empresas) {
+              foreach ($empresas as $emp) {
+                $emp = htmlspecialchars($emp);
                 echo "<option value=\"$emp\">$emp</option>";
-                $empresas[] = $emp;
               }
             }
           ?>
@@ -218,10 +126,9 @@ function obtenerPacientes($conexion) {
 </div>
 
 
-
-<script src="js/navbar-submenu.js"></script>
-<script src="js/models.js"></script>
-<script src="js/valitationInputs.js"></script><!--valida inputs -->
+<script src="../js/navbar-submenu.js"></script>
+<script src="../js/models.js"></script>
+<script src="../js/valitationInputs.js"></script><!--valida inputs -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
@@ -245,7 +152,6 @@ function obtenerPacientes($conexion) {
     document.getElementById('apellidop').value = '';
     document.getElementById('empresa').value = '';
 
-
     document.getElementById('btnAgregarEditar').value = 'agregar';
     document.getElementById('btnAgregarEditar').innerHTML = 'Agregar';
 
@@ -259,23 +165,21 @@ function obtenerPacientes($conexion) {
   }
 
   function abrirModalEditar(id, nombre, apellido, empresa, estado) {
-  document.getElementById('nombrep').value = nombre;
-  document.getElementById('apellidop').value = apellido;
-  document.getElementById('empresa').value = empresa;
+    document.getElementById('nombrep').value = nombre;
+    document.getElementById('apellidop').value = apellido;
+    document.getElementById('empresa').value = empresa;
 
+    document.getElementById('btnAgregarEditar').value = 'editar';
+    document.getElementById('btnAgregarEditar').innerHTML = 'Editar';
 
+    const idUsuaro = document.getElementById('idUsuaro');
+    if (idUsuaro) {
+      idUsuaro.hidden = false;
+      idUsuaro.value = id;
+    }
 
-  document.getElementById('btnAgregarEditar').value = 'editar';
-  document.getElementById('btnAgregarEditar').innerHTML = 'Editar';
-
-  const idUsuaro = document.getElementById('idUsuaro');
-  if (idUsuaro) {
-    idUsuaro.hidden = false;
-    idUsuaro.value = id;
+    modal.show();
   }
-
-  modal.show();
-}
 
 </script>
 

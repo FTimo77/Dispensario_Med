@@ -1,117 +1,4 @@
-<?php
-//valida sesion
-session_start();
-
-if (!isset($_SESSION['usuario'])) {
-    session_destroy();
-    header("Location: index.php");
-    exit;
-}
-require_once 'config/conexion.php';
-
-// Obtener productos activos para el select
-$productos = [];
-$conexion = new Conexion();
-$conn = $conexion->connect();
-
-$codigo_bodega_actual = $_SESSION['bodega'] ?? 0; // Obtener la bodega de la sesión
-$stmt_prod = $conn->prepare("SELECT id_prooducto, NOM_PROD, PRESENTACION_PROD FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
-$stmt_prod->bind_param("s", $codigo_bodega_actual); // 'i' porque el código de bodega es un entero
-$stmt_prod->execute();
-$res_prod = $stmt_prod->get_result();
-
-if ($res_prod) {
-    while ($row = $res_prod->fetch_assoc()) {
-        $productos[] = $row;
-    }
-}
-$stmt_prod->close();
-
-$mensaje = "";
-
-// Procesar ingreso de lotes
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $productos_lote = $_POST['productoLote'] ?? [];
-    $nombres_lote = $_POST['nombreLote'] ?? [];
-    $fechas_fabri = $_POST['fechaElaboracion'] ?? [];
-    $fechas_venc = $_POST['fechaCaducidad'] ?? [];
-    $cantidades = $_POST['cantidad'] ?? [];
-    $referencia = trim($_POST['referenciaIngreso'] ?? '');
-    $total = count($productos_lote);
-    $id_usuario_actual = $_SESSION['id_usuario'] ?? null;
-
-    if ($total > 0 && !empty($referencia)) {
-        $conn->begin_transaction();
-        try {
-            if ($id_usuario_actual === null) {
-                throw new Exception("ID de usuario no encontrado en la sesión.");
-            }
-
-            // 1. Crear la transacción en la tabla cabecera
-            $stmt_cabecera = $conn->prepare("INSERT INTO cabecera (FECHA_TRANSC, MOTIVO, TIPO_TRANSAC) VALUES (?, ?, 'I')");
-            $fecha_actual_dt = date('Y-m-d H:i:s');
-            // Usamos el campo PACIENTE para la referencia, ya que es un campo de texto genérico
-            $stmt_cabecera->bind_param("ss", $fecha_actual_dt, $referencia);
-            if (!$stmt_cabecera->execute()) {
-                throw new Exception("Error al crear la cabecera del ingreso: " . $stmt_cabecera->error);
-            }
-            // 2. Obtener el ID numérico (COD_TRANSAC) recién creado
-            $cod_transac_id = $conn->insert_id;
-            $stmt_cabecera->close();
-
-            // Preparar consultas para el bucle
-            $stmt_lote = $conn->prepare("INSERT INTO lote (NUM_LOTE, ID_PROODUCTO, FECH_VENC, FECH_FABRI, FECHA_ING, CANTIDAD_LOTE) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt_kardex = $conn->prepare("INSERT INTO kardex (ID_PROODUCTO, COD_TRANSAC, ID_USUARIO, CANTIDAD) VALUES (?, ?, ?, ?)");
-            $fecha_ing_lote = date('Y-m-d');
-
-            for ($i = 0; $i < $total; $i++) {
-                $id_producto = $productos_lote[$i];
-                $num_lote = $nombres_lote[$i];
-                $fech_fabri_str = $fechas_fabri[$i] . "-01";
-                $fech_venc_str = $fechas_venc[$i] . "-01";
-                $cantidad_ingresada = (int)$cantidades[$i];
-
-                // Validaciones de fechas (como ya las tenías)
-                $fechaElaboracionDT = new DateTime($fech_fabri_str);
-                $fechaVencimientoDT = new DateTime($fech_venc_str);
-                if ($fechaVencimientoDT < $fechaElaboracionDT) {
-                    throw new Exception("Lote '{$num_lote}': La fecha de caducidad no puede ser anterior a la de elaboración.");
-                }
-
-                // 3. Insertar en la tabla lote
-                $stmt_lote->bind_param("sisssi", $num_lote, $id_producto, $fech_venc_str, $fech_fabri_str, $fecha_ing_lote, $cantidad_ingresada);
-                if (!$stmt_lote->execute()) {
-                    throw new Exception("Error al insertar el lote '{$num_lote}': " . $stmt_lote->error);
-                }
-
-                // 4. Actualizar stock del producto (de forma segura)
-                $conn->query("UPDATE producto SET stock_act_prod = stock_act_prod + $cantidad_ingresada WHERE id_prooducto = $id_producto");
-                if ($conn->affected_rows === 0) {
-                     throw new Exception("Producto {$id_producto} no encontrado o stock no pudo ser actualizado.");
-                }
-
-                // 5. Registrar en Kardex usando el ID numérico de la cabecera
-                $stmt_kardex->bind_param("iiii", $id_producto, $cod_transac_id, $id_usuario_actual, $cantidad_ingresada);
-                if (!$stmt_kardex->execute()) {
-                    throw new Exception("Error al registrar el ingreso en kardex: " . $stmt_kardex->error);
-                }
-            }
-
-            $stmt_lote->close();
-            $stmt_kardex->close();
-            $conn->commit();
-            $mensaje = '<div class="alert alert-success text-center">Ingreso procesado correctamente.</div>';
-
-        } catch (Exception $e) {
-            $conn->rollback();
-            $mensaje = '<div class="alert alert-danger text-center"><strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . '</div>';
-        }
-    } else {
-        $mensaje = '<div class="alert alert-warning text-center">Debe agregar lotes y especificar una referencia.</div>';
-    }
-}
-$conn->close();
-?>
+<?php include __DIR__ . '/../controllers/ingreso_controller.php'; ?>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -120,11 +7,11 @@ $conn->close();
     <title>Gestión de Lotes</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="../css/style.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
   </head>
   <body class="bg-light">
-    <?php include 'includes/navbar.php'; ?>
+    <?php include '../includes/navbar.php'; ?>
     <div class="container py-5">
       <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="mb-0 px-3 py-2 rounded"
@@ -217,8 +104,8 @@ $conn->close();
       </div>
     </div>
 
-    <script src="js/navbar-submenu.js"></script>
-    <script src="js/models.js"></script>
+    <script src="../js/navbar-submenu.js"></script>
+    <script src="../js/models.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
       let lotes = [];
