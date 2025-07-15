@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 09-07-2025 a las 19:08:20
+-- Tiempo de generación: 15-07-2025 a las 22:38:03
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -47,7 +47,6 @@ CREATE TABLE `cabecera` (
   `id_paciente` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `categoria`
@@ -58,6 +57,7 @@ CREATE TABLE `categoria` (
   `NOMBRE_CAT` char(50) NOT NULL,
   `ESTADO_CAT` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
 
 -- --------------------------------------------------------
 
@@ -103,6 +103,7 @@ CREATE TABLE `lote` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
+--
 -- Disparadores `lote`
 --
 DELIMITER $$
@@ -137,6 +138,16 @@ CREATE TABLE `pacientes` (
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `presentacion_prod`
+--
+
+CREATE TABLE `presentacion_prod` (
+  `id_presentacion` int(10) UNSIGNED NOT NULL,
+  `descripcion` varchar(100) NOT NULL,
+  `estado` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
 -- Estructura de tabla para la tabla `producto`
 --
 
@@ -144,14 +155,13 @@ CREATE TABLE `producto` (
   `ID_PROODUCTO` int(11) NOT NULL,
   `ID_CATEGORIA` int(11) DEFAULT NULL,
   `CODIGO_BODEGA` int(11) DEFAULT NULL,
-  `PRESENTACION_PROD` char(20) NOT NULL,
   `NOM_PROD` char(60) NOT NULL,
+  `unidad` varchar(50) DEFAULT NULL,
+  `id_presentacion` int(10) UNSIGNED DEFAULT NULL,
   `STOCK_ACT_PROD` decimal(3,0) NOT NULL,
   `STOCK_MIN_PROD` decimal(3,0) NOT NULL,
   `ESTADO_PROD` int(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
 
 --
 -- Estructura de tabla para la tabla `rol_usuario`
@@ -170,7 +180,6 @@ CREATE TABLE `rol_usuario` (
 INSERT INTO `rol_usuario` (`COD_ROL`, `NOMBRE_ROL`, `ESTADO_ROL`) VALUES
 (1, 'ADMIN', '1'),
 (2, 'DOCTOR', '1');
-
 -- --------------------------------------------------------
 
 --
@@ -184,7 +193,6 @@ CREATE TABLE `usuario` (
   `PASS_USUARIO` char(60) NOT NULL,
   `ESTADO_USUARIO` char(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 --
 -- Índices para tablas volcadas
@@ -239,12 +247,20 @@ ALTER TABLE `pacientes`
   ADD PRIMARY KEY (`id_paciente`);
 
 --
+-- Indices de la tabla `presentacion_prod`
+--
+ALTER TABLE `presentacion_prod`
+  ADD PRIMARY KEY (`id_presentacion`),
+  ADD UNIQUE KEY `descripcion` (`descripcion`);
+
+--
 -- Indices de la tabla `producto`
 --
 ALTER TABLE `producto`
   ADD PRIMARY KEY (`ID_PROODUCTO`),
   ADD KEY `FK_RELATIONSHIP_10` (`CODIGO_BODEGA`),
-  ADD KEY `FK_RELATIONSHIP_5` (`ID_CATEGORIA`);
+  ADD KEY `FK_RELATIONSHIP_5` (`ID_CATEGORIA`),
+  ADD KEY `fk_producto_presentacion` (`id_presentacion`);
 
 --
 -- Indices de la tabla `rol_usuario`
@@ -268,25 +284,25 @@ ALTER TABLE `usuario`
 -- AUTO_INCREMENT de la tabla `bodega`
 --
 ALTER TABLE `bodega`
-  MODIFY `CODIGO_BODEGA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `CODIGO_BODEGA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT de la tabla `cabecera`
 --
 ALTER TABLE `cabecera`
-  MODIFY `COD_TRANSAC` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `COD_TRANSAC` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de la tabla `categoria`
 --
 ALTER TABLE `categoria`
-  MODIFY `ID_CATEGORIA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `ID_CATEGORIA` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `kardex`
 --
 ALTER TABLE `kardex`
-  MODIFY `ID_KARDEX` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `ID_KARDEX` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT de la tabla `log`
@@ -298,25 +314,31 @@ ALTER TABLE `log`
 -- AUTO_INCREMENT de la tabla `pacientes`
 --
 ALTER TABLE `pacientes`
-  MODIFY `id_paciente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id_paciente` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `presentacion_prod`
+--
+ALTER TABLE `presentacion_prod`
+  MODIFY `id_presentacion` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
 --
 ALTER TABLE `producto`
-  MODIFY `ID_PROODUCTO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `ID_PROODUCTO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT de la tabla `rol_usuario`
 --
 ALTER TABLE `rol_usuario`
-  MODIFY `COD_ROL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `COD_ROL` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `usuario`
 --
 ALTER TABLE `usuario`
-  MODIFY `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `ID_USUARIO` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- Restricciones para tablas volcadas
@@ -353,7 +375,8 @@ ALTER TABLE `lote`
 --
 ALTER TABLE `producto`
   ADD CONSTRAINT `FK_RELATIONSHIP_10` FOREIGN KEY (`CODIGO_BODEGA`) REFERENCES `bodega` (`CODIGO_BODEGA`),
-  ADD CONSTRAINT `FK_RELATIONSHIP_5` FOREIGN KEY (`ID_CATEGORIA`) REFERENCES `categoria` (`ID_CATEGORIA`);
+  ADD CONSTRAINT `FK_RELATIONSHIP_5` FOREIGN KEY (`ID_CATEGORIA`) REFERENCES `categoria` (`ID_CATEGORIA`),
+  ADD CONSTRAINT `fk_producto_presentacion` FOREIGN KEY (`id_presentacion`) REFERENCES `presentacion_prod` (`id_presentacion`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuario`

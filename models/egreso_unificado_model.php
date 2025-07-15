@@ -12,7 +12,7 @@ class EgresoUnificadoModel {
     }
 
     public function getProductos($codigo_bodega_actual) {
-        $stmt = $this->conn->prepare("SELECT id_prooducto, NOM_PROD, stock_act_prod, PRESENTACION_PROD FROM producto WHERE estado_prod = 1 and codigo_bodega = ?");
+        $stmt = $this->conn->prepare("SELECT p.id_prooducto, p.NOM_PROD, p.stock_act_prod, p.unidad, pr.descripcion as PRESENTACION_PROD FROM producto p LEFT JOIN presentacion_prod pr ON p.id_presentacion = pr.id_presentacion WHERE p.estado_prod = 1 and p.codigo_bodega = ? and p.stock_act_prod > 0");
         $stmt->bind_param("s", $codigo_bodega_actual);
         $stmt->execute();
         $res = $stmt->get_result();

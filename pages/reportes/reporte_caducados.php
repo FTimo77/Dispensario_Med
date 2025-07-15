@@ -76,6 +76,7 @@ while ($row = $res_cat->fetch_assoc()) {
 }
 
 // Consulta principal: lotes caducados
+
 $sql = "
     SELECT
         l.NUM_LOTE,
@@ -84,10 +85,12 @@ $sql = "
         l.FECHA_ING,
         l.ESTADO_LOTE,
         p.NOM_PROD,
-        p.PRESENTACION_PROD,
+        p.unidad,
+        pr.descripcion AS PRESENTACION_PROD,
         c.nombre_cat
     FROM lote l
     INNER JOIN producto p ON l.ID_PROODUCTO = p.id_prooducto
+    LEFT JOIN presentacion_prod pr ON p.id_presentacion = pr.id_presentacion
     INNER JOIN categoria c ON p.ID_CATEGORIA = c.id_categoria
     WHERE p.estado_prod = 1
       AND p.codigo_bodega = " . $_SESSION['bodega'] . "
@@ -197,7 +200,7 @@ $conn->close();
                                             <td><?php echo $i + 1; ?></td>
                                             <td><?php echo htmlspecialchars($lote['NUM_LOTE']); ?></td>
                                             <td><?php echo htmlspecialchars($lote['NOM_PROD']); ?></td>
-                                            <td><?php echo htmlspecialchars($lote['PRESENTACION_PROD']); ?></td>
+                                            <td><?php echo htmlspecialchars($lote['PRESENTACION_PROD']) . ' ' . htmlspecialchars($lote['unidad']); ?></td>
                                             <td><?php echo htmlspecialchars($lote['nombre_cat']); ?></td>
                                             <td><?php echo htmlspecialchars($lote['CANTIDAD_LOTE']); ?></td>
                                             <td class="text-danger fw-bold"><?php echo htmlspecialchars($lote['FECH_VENC']); ?>

@@ -51,12 +51,15 @@ $sql_mov = "
         cab.TIPO_TRANSAC,
         k.ID_PROODUCTO,
         p.NOM_PROD,
+        pr.descripcion AS PRESENTACION_PROD,
+        p.unidad,
         cab.FECHA_TRANSC,
         cab.MOTIVO,
         k.CANTIDAD
     FROM kardex k
     INNER JOIN cabecera cab ON k.COD_TRANSAC = cab.COD_TRANSAC
     INNER JOIN producto p ON k.ID_PROODUCTO = p.id_prooducto
+    LEFT JOIN presentacion_prod pr ON p.id_presentacion = pr.id_presentacion
     WHERE p.codigo_bodega = " . $_SESSION['bodega'] . "
         $where_fecha
         $where_producto
@@ -146,6 +149,7 @@ $conn->close();
                                 <th>#</th>
                                 <th>Tipo de movimiento</th>
                                 <th>Producto</th>
+                                <th>Presentación</th>
                                 <th>Fecha de transacción</th>
                                 <th>Motivo</th>
                                 <th>Cantidad</th>
@@ -171,6 +175,7 @@ $conn->close();
                                             ?>
                                         </td>
                                         <td><?php echo htmlspecialchars($mov['NOM_PROD']); ?></td>
+                                        <td><?php echo htmlspecialchars($mov['PRESENTACION_PROD']) . ' ' . htmlspecialchars($mov['unidad']); ?></td>
                                         <td><?php echo htmlspecialchars($mov['FECHA_TRANSC']); ?></td>
                                         <td><?php echo htmlspecialchars($mov['MOTIVO']); ?></td>
                                         <td><?php echo htmlspecialchars($mov['CANTIDAD']); ?></td>

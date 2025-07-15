@@ -100,7 +100,10 @@
               <?php foreach ($productos as $prod): ?>
                 <option value="<?= htmlspecialchars($prod['id_prooducto']) ?>"
                   data-stock="<?= htmlspecialchars($prod['stock_act_prod']) ?>">
-                  <?= htmlspecialchars($prod['NOM_PROD']) ?> <?= htmlspecialchars($prod['PRESENTACION_PROD']) ?> (Stock: <?= htmlspecialchars($prod['stock_act_prod']) ?>)
+                  <?= htmlspecialchars($prod['NOM_PROD']) ?>
+                   <?= htmlspecialchars($prod['PRESENTACION_PROD']) ?>
+                   <?= htmlspecialchars($prod['unidad']) ?>
+                    (Stock: <?= htmlspecialchars($prod['stock_act_prod']) ?>)
                 </option>
               <?php endforeach; ?>
             </select>

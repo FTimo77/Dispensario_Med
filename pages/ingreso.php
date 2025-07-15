@@ -74,7 +74,8 @@
                 <?php foreach ($productos as $prod): ?>
                   <option value="<?= htmlspecialchars($prod['id_prooducto']) ?>">
                     <?= htmlspecialchars($prod['NOM_PROD']) ?>
-                    <?= htmlspecialchars($prod['PRESENTACION_PROD']) ?>
+                    <?= htmlspecialchars($prod['PRESENTACION_PROD']) ?> -
+                    <?= htmlspecialchars($prod['unidad']) ?>
                   </option>
                 <?php endforeach; ?>
               </select>

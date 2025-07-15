@@ -95,10 +95,14 @@ function renderMenuItem($item) {
     if (strpos($url, 'reporte_') === 0) {
         $url = $in_reportes ? './' . $url : './reportes/' . $url;
     }
+    // Si es egreso_unificado.php (con o sin parámetros), egreso.php, ingreso.php, siempre ir a raíz de pages
+    elseif (preg_match('/^(egreso_unificado\.php(\?.*)?|egreso\.php(\?.*)?|ingreso\.php(\?.*)?)$/', $url)) {
+        $url = $in_reportes ? '../' . $url : './' . $url;
+    }
     // Si es un archivo PHP principal
     elseif (in_array($url, [
         'users.php', 'paciente.php', 'rol_user.php', 'agregar_bodega.php', 'producto.php',
-        'ingreso.php', 'egreso_unificado.php', 'egreso.php', 'menu_principal.php', 'primer_ingreso.php'
+        'menu_principal.php', 'primer_ingreso.php'
     ])) {
         $url = $in_reportes ? '../' . $url : './' . $url;
     }

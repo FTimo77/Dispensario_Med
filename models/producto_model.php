@@ -8,7 +8,7 @@ class ProductoModel {
     }
     public function obtenerProductos($bodega) {
         $productos = [];
-        $stmt = $this->conn->prepare("SELECT p.ID_PROODUCTO, p.ID_CATEGORIA, p.CODIGO_BODEGA, p.PRESENTACION_PROD, p.NOM_PROD, p.STOCK_ACT_PROD, p.STOCK_MIN_PROD, p.ESTADO_PROD, c.nombre_cat FROM producto p LEFT JOIN categoria c ON p.ID_CATEGORIA = c.ID_CATEGORIA WHERE p.ESTADO_PROD = 1 AND p.CODIGO_BODEGA = ?");
+        $stmt = $this->conn->prepare("SELECT p.ID_PROODUCTO, p.ID_CATEGORIA, p.CODIGO_BODEGA, p.id_presentacion, p.NOM_PROD, p.STOCK_ACT_PROD, p.STOCK_MIN_PROD, p.ESTADO_PROD, p.unidad, c.nombre_cat, pr.descripcion as PRESENTACION_PROD FROM producto p LEFT JOIN categoria c ON p.ID_CATEGORIA = c.ID_CATEGORIA LEFT JOIN presentacion_prod pr ON p.id_presentacion = pr.id_presentacion WHERE p.ESTADO_PROD = 1 AND p.CODIGO_BODEGA = ?");
         if (!$stmt) {
             error_log('Error en prepare: ' . $this->conn->error);
             return $productos;
@@ -38,21 +38,21 @@ class ProductoModel {
     }
     public function obtenerPresentaciones() {
         $presentaciones = [];
-        $result = $this->conn->query("SELECT DISTINCT PRESENTACION_PROD FROM producto WHERE PRESENTACION_PROD IS NOT NULL AND PRESENTACION_PROD != ''");
+        $result = $this->conn->query("SELECT id_presentacion, descripcion FROM presentacion_prod WHERE estado = 1");
         if ($result) {
             while ($row = $result->fetch_assoc()) {
-                $presentaciones[] = $row['PRESENTACION_PROD'];
+                $presentaciones[] = $row;
             }
         }
         return $presentaciones;
     }
-    public function agregarProducto($nombre, $presentacion, $categoria_id, $bodega, $stock_minimo) {
-        $stmt = $this->conn->prepare("INSERT INTO producto (NOM_PROD, PRESENTACION_PROD, ID_CATEGORIA, CODIGO_BODEGA, ESTADO_PROD, STOCK_MIN_PROD) VALUES (?, ?, ?, ?, 1, ?)");
+    public function agregarProducto($nombre, $id_presentacion, $categoria_id, $bodega, $stock_minimo, $unidad = '') {
+        $stmt = $this->conn->prepare("INSERT INTO producto (NOM_PROD, id_presentacion, ID_CATEGORIA, CODIGO_BODEGA, ESTADO_PROD, STOCK_MIN_PROD, unidad) VALUES (?, ?, ?, ?, 1, ?, ?)");
         if (!$stmt) {
             error_log('Error en prepare (agregarProducto): ' . $this->conn->error);
             return false;
         }
-        $stmt->bind_param("ssiii", $nombre, $presentacion, $categoria_id, $bodega, $stock_minimo);
+        $stmt->bind_param("siiiss", $nombre, $id_presentacion, $categoria_id, $bodega, $stock_minimo, $unidad);
         $res = $stmt->execute();
         if (!$res) {
             error_log('Error en execute (agregarProducto): ' . $stmt->error);
@@ -60,13 +60,13 @@ class ProductoModel {
         $stmt->close();
         return $res;
     }
-    public function actualizarProducto($id, $nombre, $presentacion, $categoria_id, $stock_minimo) {
-        $stmt = $this->conn->prepare("UPDATE producto SET NOM_PROD=?, PRESENTACION_PROD=?, ID_CATEGORIA=?, STOCK_MIN_PROD=? WHERE ID_PROODUCTO=?");
+    public function actualizarProducto($id, $nombre, $id_presentacion, $categoria_id, $stock_minimo, $unidad = '') {
+        $stmt = $this->conn->prepare("UPDATE producto SET NOM_PROD=?, id_presentacion=?, ID_CATEGORIA=?, STOCK_MIN_PROD=?, unidad=? WHERE ID_PROODUCTO=?");
         if (!$stmt) {
             error_log('Error en prepare (actualizarProducto): ' . $this->conn->error);
             return false;
         }
-        $stmt->bind_param("ssiii", $nombre, $presentacion, $categoria_id, $stock_minimo, $id);
+        $stmt->bind_param("siiisi", $nombre, $id_presentacion, $categoria_id, $stock_minimo, $unidad, $id);
         $res = $stmt->execute();
         if (!$res) {
             error_log('Error en execute (actualizarProducto): ' . $stmt->error);
@@ -103,6 +103,24 @@ class ProductoModel {
         $stmt->close();
         return $res;
     }
+
+    public function agregarPresentacion($descripcion) {
+        $stmt = $this->conn->prepare("INSERT INTO presentacion_prod (descripcion, estado) VALUES (?, 1)");
+        $stmt->bind_param("s", $descripcion);
+        $res = $stmt->execute();
+        $id = $this->conn->insert_id;
+        $stmt->close();
+        return $res ? $id : false;
+    }
+
+    public function eliminarPresentacion($id) {
+        $stmt = $this->conn->prepare("UPDATE presentacion_prod SET estado=0 WHERE id_presentacion=?");
+        $stmt->bind_param("i", $id);
+        $res = $stmt->execute();
+        $stmt->close();
+        return $res;
+    }
+
     public function close() {
         $this->conn->close();
     }

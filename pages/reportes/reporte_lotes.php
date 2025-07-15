@@ -86,20 +86,21 @@ if ($tipo === 'minimos') {
     $sql_lotes = "
         SELECT DISTINCT
             p.id_prooducto,
-            p.NOM_PROD, 
-            p.PRESENTACION_PROD, 
+            p.NOM_PROD,
+            pr.descripcion AS PRESENTACION_PROD,
+            p.unidad,
             p.stock_min_prod,
             p.stock_act_prod,
             p.estado_prod,
             p.CODIGO_BODEGA,
             c.nombre_cat
         FROM 
-            producto p 
-        INNER JOIN
-            categoria c ON p.ID_CATEGORIA = c.id_categoria
+            producto p
+        LEFT JOIN presentacion_prod pr ON p.id_presentacion = pr.id_presentacion
+        INNER JOIN categoria c ON p.ID_CATEGORIA = c.id_categoria
         WHERE 
             p.estado_prod = 1 
-            AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
+            AND p.CODIGO_BODEGA = " . $_SESSION['bodega'] . "
             $extra_where
             $where_producto
             $where_categoria
@@ -110,33 +111,33 @@ if ($tipo === 'minimos') {
     // Para el reporte general, mostrar lotes
     $sql_lotes = "
         SELECT
-            l.NUM_LOTE, 
+            l.NUM_LOTE,
             l.CANTIDAD_LOTE,
-            l.FECH_VENC, 
-            l.FECH_FABRI, 
+            l.FECH_VENC,
+            l.FECH_FABRI,
             l.FECHA_ING,
             l.ESTADO_LOTE,
-            p.NOM_PROD, 
-            p.PRESENTACION_PROD, 
+            p.NOM_PROD,
+            pr.descripcion AS PRESENTACION_PROD,
+            p.unidad,
             p.stock_min_prod,
             p.stock_act_prod,
             p.estado_prod,
             p.CODIGO_BODEGA,
             c.nombre_cat
-        FROM 
-            lote l 
-        INNER JOIN 
-            producto p ON l.ID_PROODUCTO = p.id_prooducto
-        INNER JOIN
-            categoria c ON p.ID_CATEGORIA = c.id_categoria
-        WHERE 
-            p.estado_prod = 1 
-            AND p.CODIGO_BODEGA = ".$_SESSION['bodega']."
+        FROM
+            lote l
+        INNER JOIN producto p ON l.ID_PROODUCTO = p.id_prooducto
+        LEFT JOIN presentacion_prod pr ON p.id_presentacion = pr.id_presentacion
+        INNER JOIN categoria c ON p.ID_CATEGORIA = c.id_categoria
+        WHERE
+            p.estado_prod = 1
+            AND p.CODIGO_BODEGA = " . $_SESSION['bodega'] . "
             $extra_where
             $where_fecha
             $where_producto
             $where_categoria
-        ORDER BY 
+        ORDER BY
             $order_by_stock l.FECHA_ING DESC
     ";
 }
@@ -274,7 +275,7 @@ $conn->close();
                                             <td><?php echo htmlspecialchars($lote['NUM_LOTE']); ?></td>
                                         <?php endif; ?>
                                         <td><?php echo htmlspecialchars($lote['NOM_PROD']); ?></td>
-                                        <td><?php echo htmlspecialchars($lote['PRESENTACION_PROD']); ?></td>
+                                        <td><?php echo htmlspecialchars($lote['PRESENTACION_PROD']) . ' ' . htmlspecialchars($lote['unidad']); ?></td>
                                         <td><?php echo htmlspecialchars($lote['nombre_cat']); ?></td>
                                         <?php if ($mostrar_stock_actual): ?>
                                             <td>

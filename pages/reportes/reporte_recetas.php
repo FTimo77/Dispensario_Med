@@ -81,13 +81,16 @@ $sql_recetas = "
         pac.apellido_paciente,
         pac.empresa,
         k.CANTIDAD,
-        p.NOM_PROD
+        p.NOM_PROD,
+        pr.descripcion AS PRESENTACION_PROD,
+        p.unidad
     FROM kardex k
     INNER JOIN cabecera cab ON k.COD_TRANSAC = cab.COD_TRANSAC
     INNER JOIN pacientes pac ON cab.id_paciente = pac.id_paciente
     INNER JOIN producto p ON k.ID_PROODUCTO = p.id_prooducto
+    LEFT JOIN presentacion_prod pr ON p.id_presentacion = pr.id_presentacion
     WHERE cab.id_paciente IS NOT NULL
-        AND p.codigo_bodega = ".$_SESSION['bodega']."
+        AND p.codigo_bodega = " . $_SESSION['bodega'] . "
         $where_fecha
         $where_paciente
         $where_producto
@@ -191,6 +194,7 @@ $conn->close();
                                 <th>Empresa</th>
                                 <th>Paciente</th>
                                 <th>Producto</th>
+                                <th>Presentación</th>
                                 <th>Cantidad</th>
                                 <th>Motivo</th>
                                 <th>Fecha</th>
@@ -208,6 +212,7 @@ $conn->close();
                                         <td><?php echo htmlspecialchars($rec['empresa']); ?></td>
                                         <td><?php echo htmlspecialchars($rec['nombre_paciente'] . ' ' . $rec['apellido_paciente']); ?></td>
                                         <td><?php echo htmlspecialchars($rec['NOM_PROD']); ?></td>
+                                        <td><?php echo htmlspecialchars($rec['PRESENTACION_PROD']) . ' ' . htmlspecialchars($rec['unidad']); ?></td>
                                         <td><?php echo htmlspecialchars($rec['CANTIDAD']); ?></td>
                                         <td><?php echo htmlspecialchars($rec['MOTIVO']); ?></td>
                                         <td><?php echo htmlspecialchars($rec['FECHA_TRANSC']); ?></td>
