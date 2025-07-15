@@ -59,7 +59,6 @@ if ($nombre_rol === 'ADMIN') {
 } elseif ($nombre_rol === 'DOCTOR' || $nombre_rol === 'ENFERMERA') {
     $menu_items['registro']['items'] = [
         ['titulo' => 'Pacientes', 'url' => 'paciente.php', 'icono' => 'bi-people'],
-        ['tipo' => 'divider'],
         ['tipo' => 'header', 'titulo' => 'Inventario'],
         ['titulo' => 'Bodega', 'url' => 'agregar_bodega.php', 'icono' => 'bi-building'],
         ['titulo' => 'Productos', 'url' => 'producto.php', 'icono' => 'bi-box']
