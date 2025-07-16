@@ -48,12 +48,13 @@ class UsuarioModel {
     }
     public function editar($id_usuario, $cod_rol, $nombre_usuario, $pass_usuario, $estado) {
         if ($pass_usuario !== '') {
+            $pass_usuario_hash = password_hash($pass_usuario, PASSWORD_DEFAULT);
             $stmt = $this->conn->prepare("UPDATE usuario SET COD_ROL=?, NOMBRE_USUARIO=?, PASS_USUARIO=?, ESTADO_USUARIO=? WHERE ID_USUARIO=?");
             if (!$stmt) {
                 $this->mensaje = 'Error en prepare: ' . $this->conn->error;
                 return false;
             }
-            $stmt->bind_param("issii", $cod_rol, $nombre_usuario, $pass_usuario, $estado, $id_usuario);
+            $stmt->bind_param("issii", $cod_rol, $nombre_usuario, $pass_usuario_hash, $estado, $id_usuario);
         } else {
             $stmt = $this->conn->prepare("UPDATE usuario SET COD_ROL=?, NOMBRE_USUARIO=?, ESTADO_USUARIO=? WHERE ID_USUARIO=?");
             if (!$stmt) {

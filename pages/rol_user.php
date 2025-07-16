@@ -98,7 +98,7 @@ require_once '../controllers/rol_controller.php';
           <div class="mb-3">
             <label for="nombre_rol" class="form-label">Nombre del Rol</label>
             <input type="select" class="form-control" id="nombre_rol" name="nombre_rol" placeholder="Ej: Administrador"
-              required  oninput="soloLetras(this)"/>
+              required  oninput="mayusculas(this)"/>
           </div>
           <!-- *** CAMBIO: Se agregó un ID para poder ocultarlo/mostrarlo *** -->
           <div class="mb-3" id="campoEstadoRol">
