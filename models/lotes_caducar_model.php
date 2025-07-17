@@ -11,6 +11,7 @@ class LotesCaducarModel {
             C.NOMBRE_CAT,
             P.NOM_PROD,
             P.STOCK_ACT_PROD,
+            PR.DESCRIPCION,
             L.NUM_LOTE,
             L.FECH_VENC,
             TIMESTAMPDIFF(MONTH, NOW(), L.FECH_VENC) AS 'MESES' 
@@ -19,7 +20,9 @@ class LotesCaducarModel {
         JOIN 
             producto P ON L.ID_PROODUCTO = P.ID_PROODUCTO 
         JOIN 
-            categoria C ON P.ID_CATEGORIA = C.ID_CATEGORIA 
+            categoria C ON P.ID_CATEGORIA = C.ID_CATEGORIA  
+        JOIN 
+            presentacion_prod PR ON P.ID_PRESENTACION = PR.ID_PRESENTACION
         WHERE 
             TIMESTAMPDIFF(MONTH, NOW(), L.FECH_VENC) < ? 
             AND P.ESTADO_PROD = 1 

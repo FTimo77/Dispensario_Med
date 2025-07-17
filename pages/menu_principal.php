@@ -34,6 +34,7 @@
                                 <th>#</th>
                                 <th>Categoria</th>
                                 <th>Producto</th>
+                                <th>Presentación</th>
                                 <th>Stock prod</th>
                                 <th>Lote</th>
                                 <th>Vencimiento</th>
@@ -52,6 +53,7 @@
                 <td><?php echo $i; ?></td>
                 <td><?php echo htmlspecialchars($row['NOMBRE_CAT']); ?></td>
                 <td><?php echo htmlspecialchars($row['NOM_PROD']); ?></td>
+                <td><?php echo htmlspecialchars($row['DESCRIPCION']); ?></td>
                 <td><?php echo htmlspecialchars($row['STOCK_ACT_PROD']); ?></td>
                 <td><?php echo htmlspecialchars($row['NUM_LOTE']); ?></td>
                 <td><?php echo htmlspecialchars($row['FECH_VENC']); ?></td>
