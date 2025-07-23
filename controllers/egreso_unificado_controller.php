@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../models/egreso_unificado_model.php';
 
-$tipo = $_GET['tipo'] ?? 'normal';
+$tipo = $_GET['tipo'] ?? 'normal'; 
 $model = new EgresoUnificadoModel();
 $codigo_bodega_actual = $_SESSION['bodega'] ?? 0;
 $productos = $model->getProductos($codigo_bodega_actual);
@@ -19,7 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($tipo === 'botiquin') {
         $paciente = null;
         $motivo = 'Botiquín';
-    } else {
+    } elseif($tipo=='dispensario'){
+        $paciente = null;
+        $motivo = 'Dispensario';
+    }
+        else {
         $paciente = trim($_POST['paciente'] ?? '');
         $motivo = trim($_POST['motivo'] ?? '');
     }

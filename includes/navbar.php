@@ -27,7 +27,8 @@ $menu_items = [
                 'icono' => 'bi-box-arrow-up',
                 'submenu' => [
                     ['titulo' => 'Por Atención', 'url' => 'egreso_unificado.php?tipo=normal', 'icono' => 'bi-person-check'],
-                    ['titulo' => 'Por Botiquín', 'url' => 'egreso_unificado.php?tipo=botiquin', 'icono' => 'bi-prescription2']
+                    ['titulo' => 'Por Botiquín', 'url' => 'egreso_unificado.php?tipo=botiquin', 'icono' => 'bi-prescription2'],
+                    ['titulo' => 'Salida Dispensario', 'url' => 'egreso_unificado.php?tipo=dispensario', 'icono' => 'bi-prescription2']
                 ]
             ]
         ]
