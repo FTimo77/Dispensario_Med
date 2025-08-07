@@ -4,7 +4,7 @@ require_once __DIR__ . '/../models/login_model.php';
 $model = new LoginModel();
 $mensaje = "";
 $intento_login = false;
-
+ 
 // Redirigir si ya está logueado
 if (isset($_SESSION['usuario']) && isset($_SESSION['bodega'])) {
     header("Location: pages/menu_principal.php");

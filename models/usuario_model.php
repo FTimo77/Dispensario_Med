@@ -42,7 +42,7 @@ class UsuarioModel {
         $res = $stmt->execute();
         if (!$res) {
             $this->mensaje = 'Error al insertar usuario: ' . $stmt->error;
-        }
+        } 
         $stmt->close();
         return $res;
     }

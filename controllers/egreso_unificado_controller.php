@@ -18,10 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($tipo === 'botiquin') {
         $paciente = null;
-        $motivo = 'Botiquín';
+        $motivo = 'Salida Botiquín';
     } elseif($tipo=='dispensario'){
         $paciente = null;
-        $motivo = 'Dispensario';
+        $motivo = 'Salida Dispensario';
     }
         else {
         $paciente = trim($_POST['paciente'] ?? '');

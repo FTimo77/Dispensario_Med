@@ -122,7 +122,7 @@ require_once '../controllers/producto_controller.php';
                 <div class="col-md-4">
                   <label for="medida_unidad" class="form-label">Unidad</label>
                   <select class="form-select" id="medida_unidad" name="medida_unidad">
-                    <option value="">Unidad</option>
+                    <option value="UNIDADES" selected>Unidad</option>
                     <option value="MG">MG</option>
                     <option value="G">G</option>
                     <option value="ML">ML</option>
